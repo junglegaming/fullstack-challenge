@@ -1,6 +1,6 @@
-# Desafio Full-stack - Crash Game
+# 🎮 Desafio Full-stack - Crash Game
 
-## Bem-vindo à Jungle Gaming
+## 🦧 Bem-vindo à Jungle Gaming
 
 A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
 
@@ -12,7 +12,7 @@ Boa sorte. Que o multiplicador esteja ao seu favor. 🎲
 
 ---
 
-## Visão Geral
+## 📖 Visão Geral
 
 Um **Crash Game** é um jogo de cassino multiplayer em tempo real: um multiplicador sobe a partir de `1.00x` e pode "crashar" a qualquer momento. Jogadores apostam antes da rodada e precisam sacar (cash out) antes do crash para garantir os ganhos — caso contrário, perdem a aposta.
 
@@ -22,7 +22,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## Índice
+## 📋 Índice
 
 - [Regras do Jogo](#regras-do-jogo)
 - [Arquitetura](#arquitetura)
@@ -40,7 +40,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## Regras do Jogo
+## 🎲 Regras do Jogo
 
 1. **Fase de Apostas** — Janela configurável (ex: 10s) para apostar. Cada jogador pode fazer apenas **uma aposta por rodada**.
 2. **Início da Rodada** — O multiplicador começa em `1.00x` e sobe continuamente.
@@ -57,7 +57,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## Arquitetura
+## 🏗️ Arquitetura
 
 ```
                         ┌──────────────────────────┐
@@ -89,7 +89,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## Tech Stack Aceita
+## 🛠️ Tech Stack Aceita
 
 | Camada          | Tecnologia                                                        |
 | --------------- | ----------------------------------------------------------------- |
@@ -109,7 +109,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## Infraestrutura e Setup
+## 🐳 Infraestrutura e Setup
 
 ### Pré-requisitos
 
@@ -157,7 +157,7 @@ bun run docker:prune   # Remove tudo (containers, volumes, imagens)
 
 ---
 
-## Modelo de Domínio
+## 🧩 Modelo de Domínio
 
 O sistema é dividido em dois bounded contexts:
 
@@ -185,7 +185,7 @@ O design dessa comunicação é **parte central da avaliação**.
 
 ---
 
-## Algoritmo Provably Fair
+## 🔐 Algoritmo Provably Fair
 
 O crash point de cada rodada deve ser **verificável pelo jogador** — garantindo que o resultado foi pré-determinado e não manipulado após as apostas.
 
@@ -195,7 +195,7 @@ A implementação desse algoritmo (geração, cálculo e verificação) faz part
 
 ---
 
-## Referência da API
+## 📡 Referência da API
 
 Todos os endpoints são acessados via **Kong** (`http://localhost:8000`).
 
@@ -236,7 +236,7 @@ O design dos eventos WebSocket, seus payloads e a estratégia de sincronização
 
 ---
 
-## Requisitos do Frontend
+## 🖥️ Requisitos do Frontend
 
 ### Página de Login
 
@@ -264,7 +264,7 @@ Redirect para Keycloak (OIDC authorization code flow). Tratar callback e armazen
 
 ---
 
-## Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 > Estrutura sugerida — pode adaptar, desde que mantenha a separação de camadas DDD (domain → application → infrastructure → presentation).
 
@@ -294,7 +294,7 @@ fullstack-challenge/
 │       ├── Dockerfile
 │       └── package.json
 ├── packages/                          # Pacotes compartilhados entre serviços
-│   │                                  # Ex: @crash/financial, @crash/core, @crash/auth
+│   │                                  # Ex: @crash/eslint
 │   └── (pacotes serão adicionados aqui)
 ├── frontend/
 │   ├── src/
@@ -317,7 +317,7 @@ fullstack-challenge/
 
 ---
 
-## Testes
+## 🧪 Testes
 
 ### Obrigatórios
 
@@ -345,7 +345,7 @@ cd frontend && bun test
 
 ---
 
-## Infraestrutura Pré-configurada
+## ⚙️ Infraestrutura Pré-configurada
 
 O repositório já inclui `docker-compose.yml` totalmente funcional. Basta rodar `bun run docker:up` — sem nenhum passo manual.
 
@@ -371,7 +371,7 @@ Cada serviço tem:
 
 - Estrutura de camadas DDD: `domain/`, `application/`, `infrastructure/`, `presentation/`
 - `tests/unit/` e `tests/e2e/` prontos para receber os testes
-- `packages/` na raiz do monorepo para pacotes compartilhados entre serviços (ex: `@crash/core`, `@crash/financial`)
+- `packages/` na raiz do monorepo para pacotes compartilhados entre serviços (ex: `@crash/eslint`)
 
 **Frontend — a implementar.** A pasta `frontend/` existe mas o scaffold é responsabilidade do candidato. Use o framework de sua preferência:
 
@@ -396,7 +396,7 @@ cp services/wallets/.env.example services/wallets/.env
 
 ---
 
-## Critérios de Avaliação
+## 📊 Critérios de Avaliação
 
 ### Eliminatórios (todos devem passar)
 
@@ -428,7 +428,7 @@ cp services/wallets/.env.example services/wallets/.env
 
 ---
 
-## Entrega
+## 📦 Entrega
 
 | Item                 | Requisito                                                |
 | -------------------- | -------------------------------------------------------- |
@@ -438,10 +438,9 @@ cp services/wallets/.env.example services/wallets/.env
 | **Usuário de teste** | Pré-configurado no Keycloak com saldo na carteira        |
 | **Prazo**            | **5 dias corridos** a partir do recebimento              |
 
-
 ---
 
-## Bônus
+## ⭐ Bônus
 
 Não obrigatórios, mas diferenciam candidatos excepcionais:
 
@@ -459,7 +458,7 @@ Não obrigatórios, mas diferenciam candidatos excepcionais:
 
 ---
 
-## Dúvidas?
+## ❓ Dúvidas?
 
 Abra uma issue no seu repositório ou entre em contato com o recrutador.
 
