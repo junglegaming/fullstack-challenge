@@ -1,6 +1,6 @@
-# 🎮 Desafio Full-stack - Crash Game
+# Desafio Full-stack - Crash Game 🎮
 
-## 🦧 Bem-vindo à Jungle Gaming
+## Bem-vindo à Jungle Gaming 🦧
 
 A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
 
@@ -12,7 +12,7 @@ Boa sorte. Que o multiplicador esteja ao seu favor. 🎲
 
 ---
 
-## 📖 Visão Geral
+## Visão Geral 📖
 
 Um **Crash Game** é um jogo de cassino multiplayer em tempo real: um multiplicador sobe a partir de `1.00x` e pode "crashar" a qualquer momento. Jogadores apostam antes da rodada e precisam sacar (cash out) antes do crash para garantir os ganhos — caso contrário, perdem a aposta.
 
@@ -22,7 +22,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## 📋 Índice
+## Índice 📋
 
 - [Regras do Jogo](#regras-do-jogo)
 - [Arquitetura](#arquitetura)
@@ -32,7 +32,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 - [Algoritmo Provably Fair](#algoritmo-provably-fair)
 - [Referência da API](#referência-da-api)
 - [Requisitos do Frontend](#requisitos-do-frontend)
-- [Estrutura do Projeto](#estrutura-do-projeto)
+
 - [Testes](#testes)
 - [Critérios de Avaliação](#critérios-de-avaliação)
 - [Entrega](#entrega)
@@ -40,7 +40,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## 🎲 Regras do Jogo
+## Regras do Jogo 🎲
 
 1. **Fase de Apostas** — Janela configurável (ex: 10s) para apostar. Cada jogador pode fazer apenas **uma aposta por rodada**.
 2. **Início da Rodada** — O multiplicador começa em `1.00x` e sobe continuamente.
@@ -57,7 +57,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura 🏗️
 
 ```
                         ┌──────────────────────────┐
@@ -89,7 +89,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## 🛠️ Tech Stack Aceita
+## Tech Stack Aceita 🛠️
 
 | Camada          | Tecnologia                                                        |
 | --------------- | ----------------------------------------------------------------- |
@@ -109,55 +109,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ---
 
-## 🐳 Infraestrutura e Setup
-
-### Pré-requisitos
-
-- Bun >= 1.x
-- Docker & Docker Compose
-
-### Stack pré-configurada
-
-O repositório já inclui `docker-compose.yml` e arquivos de suporte prontos para uso:
-
-| Serviço        | Imagem                             | Portas                                  |
-| -------------- | ---------------------------------- | --------------------------------------- |
-| PostgreSQL     | `postgres:18.3-alpine`             | `5432` (databases: `games` e `wallets`) |
-| RabbitMQ       | `rabbitmq:4.2.4-management-alpine` | `5672` (AMQP), `15672` (UI)             |
-| Keycloak       | `quay.io/keycloak/keycloak:26.5.5` | `8080`                                  |
-| Kong           | `kong:3.9.1`                       | `8000` (proxy), `8001` (admin)          |
-| Frontend       | —                                  | `http://localhost:3000`                 |
-| Game Service   | —                                  | `http://localhost:4001`                 |
-| Wallet Service | —                                  | `http://localhost:4002`                 |
-
-**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo sem nenhum passo manual** — incluindo realm do Keycloak, config do Kong e migrations de banco.
-
-### Keycloak
-
-O realm `crash-game` é importado automaticamente no `docker:up`. Nenhuma configuração manual necessária.
-
-| Item           | Valor                                                                      |
-| -------------- | -------------------------------------------------------------------------- |
-| Admin UI       | `http://localhost:8080` (`admin` / `admin`)                                |
-| Realm          | `crash-game`                                                               |
-| Client ID      | `crash-game-client` (public, PKCE S256)                                    |
-| Usuário teste  | `player` / `player123`                                                     |
-| OIDC discovery | `http://localhost:8080/realms/crash-game/.well-known/openid-configuration` |
-
-### Comandos
-
-```bash
-git clone https://github.com/junglegaming/fullstack-challenge
-cd fullstack-challenge
-bun install
-bun run docker:up      # Sobe tudo (infra + serviços + frontend)
-bun run docker:down    # Para os containers
-bun run docker:prune   # Remove tudo (containers, volumes, imagens)
-```
-
----
-
-## 🧩 Modelo de Domínio
+## Modelo de Domínio 🧩
 
 O sistema é dividido em dois bounded contexts:
 
@@ -185,7 +137,7 @@ O design dessa comunicação é **parte central da avaliação**.
 
 ---
 
-## 🔐 Algoritmo Provably Fair
+## Algoritmo Provably Fair 🔐
 
 O crash point de cada rodada deve ser **verificável pelo jogador** — garantindo que o resultado foi pré-determinado e não manipulado após as apostas.
 
@@ -195,7 +147,7 @@ A implementação desse algoritmo (geração, cálculo e verificação) faz part
 
 ---
 
-## 📡 Referência da API
+## Referência da API 📡
 
 Todos os endpoints são acessados via **Kong** (`http://localhost:8000`).
 
@@ -236,7 +188,7 @@ O design dos eventos WebSocket, seus payloads e a estratégia de sincronização
 
 ---
 
-## 🖥️ Requisitos do Frontend
+## Requisitos do Frontend 🖥️
 
 ### Página de Login
 
@@ -264,7 +216,91 @@ Redirect para Keycloak (OIDC authorization code flow). Tratar callback e armazen
 
 ---
 
-## 📁 Estrutura do Projeto
+## Infraestrutura e Setup 🐳
+
+### Pré-requisitos
+
+- Bun >= 1.x
+- Docker & Docker Compose
+
+### Stack pré-configurada
+
+O repositório já inclui `docker-compose.yml` e arquivos de suporte prontos para uso:
+
+| Serviço        | Imagem                             | Portas                                  |
+| -------------- | ---------------------------------- | --------------------------------------- |
+| PostgreSQL     | `postgres:18.3-alpine`             | `5432` (databases: `games` e `wallets`) |
+| RabbitMQ       | `rabbitmq:4.2.4-management-alpine` | `5672` (AMQP), `15672` (UI)             |
+| Keycloak       | `quay.io/keycloak/keycloak:26.5.5` | `8080`                                  |
+| Kong           | `kong:3.9.1`                       | `8000` (proxy), `8001` (admin)          |
+| Frontend       | —                                  | `http://localhost:3000`                 |
+| Game Service   | —                                  | `http://localhost:4001`                 |
+| Wallet Service | —                                  | `http://localhost:4002`                 |
+
+**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo sem nenhum passo manual** — incluindo realm do Keycloak, config do Kong e migrations de banco.
+
+### Keycloak
+
+O realm `crash-game` é importado automaticamente no `docker:up`. Nenhuma configuração manual necessária.
+
+| Item           | Valor                                                                      |
+| -------------- | -------------------------------------------------------------------------- |
+| Admin UI       | `http://localhost:8080` (`admin` / `admin`)                                |
+| Realm          | `crash-game`                                                               |
+| Client ID      | `crash-game-client` (public, PKCE S256)                                    |
+| Usuário teste  | `player` / `player123`                                                     |
+| OIDC discovery | `http://localhost:8080/realms/crash-game/.well-known/openid-configuration` |
+
+### Scaffold dos serviços de aplicação
+
+**Backend — pronto.** Ambos os serviços já possuem scaffold NestJS funcional com estrutura DDD e rota `GET /health`. Estão integrados ao `docker-compose.yml` e roteados pelo Kong.
+
+| Serviço        | Porta direta | Via Kong                          |
+| -------------- | ------------ | --------------------------------- |
+| Game Service   | `4001`       | `http://localhost:8000/games/*`   |
+| Wallet Service | `4002`       | `http://localhost:8000/wallets/*` |
+
+Cada serviço tem:
+
+- Estrutura de camadas DDD: `domain/`, `application/`, `infrastructure/`, `presentation/`
+- `tests/unit/` e `tests/e2e/` prontos para receber os testes
+- `packages/` na raiz do monorepo para pacotes compartilhados entre serviços (ex: `@crash/eslint`)
+
+**Frontend — a implementar.** A pasta `frontend/` existe mas o scaffold é responsabilidade do candidato. Use o framework de sua preferência:
+
+- **Vite + React** — opção mais leve, ideal se quiser controle total
+- **Next.js** — SSR out-of-the-box, boa escolha para SEO e rotas
+- **TanStack Start** — preferido na stack da Jungle Gaming
+
+O placeholder no `docker-compose.yml` está comentado — descomente e adapte com seu `Dockerfile` e porta após criar o scaffold.
+
+### Variáveis de ambiente
+
+As credenciais de infraestrutura (PostgreSQL, RabbitMQ, Keycloak) estão hardcoded no `docker-compose.yml` — são valores de desenvolvimento local, sem necessidade de `.env` no root.
+
+Cada serviço possui `.env.example` com as variáveis necessárias. Copie para `.env` antes de rodar fora do Docker:
+
+```bash
+cp services/games/.env.example services/games/.env
+cp services/wallets/.env.example services/wallets/.env
+```
+
+**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo**.
+
+### Comandos
+
+```bash
+git clone https://github.com/junglegaming/fullstack-challenge
+cd fullstack-challenge
+bun install
+bun run docker:up      # Sobe tudo (infra + serviços + frontend)
+bun run docker:down    # Para os containers
+bun run docker:prune   # Remove tudo (containers, volumes, imagens)
+```
+
+---
+
+## Estrutura do Projeto 📁
 
 > Estrutura sugerida — pode adaptar, desde que mantenha a separação de camadas DDD (domain → application → infrastructure → presentation).
 
@@ -317,7 +353,7 @@ fullstack-challenge/
 
 ---
 
-## 🧪 Testes
+## Testes 🧪
 
 ### Obrigatórios
 
@@ -345,58 +381,9 @@ cd frontend && bun test
 
 ---
 
-## ⚙️ Infraestrutura Pré-configurada
-
-O repositório já inclui `docker-compose.yml` totalmente funcional. Basta rodar `bun run docker:up` — sem nenhum passo manual.
-
-### Serviços de infraestrutura
-
-| Serviço    | Imagem                             | Portas                                  |
-| ---------- | ---------------------------------- | --------------------------------------- |
-| PostgreSQL | `postgres:18.3-alpine`             | `5432` (databases: `games` e `wallets`) |
-| RabbitMQ   | `rabbitmq:4.2.4-management-alpine` | `5672` (AMQP), `15672` (UI)             |
-| Keycloak   | `quay.io/keycloak/keycloak:26.5.5` | `8080`                                  |
-| Kong       | `kong:3.9.1`                       | `8000` (proxy), `8001` (admin)          |
-
-### Scaffold dos serviços de aplicação
-
-**Backend — pronto.** Ambos os serviços já possuem scaffold NestJS funcional com estrutura DDD e rota `GET /health`. Estão integrados ao `docker-compose.yml` e roteados pelo Kong.
-
-| Serviço        | Porta direta | Via Kong                          |
-| -------------- | ------------ | --------------------------------- |
-| Game Service   | `4001`       | `http://localhost:8000/games/*`   |
-| Wallet Service | `4002`       | `http://localhost:8000/wallets/*` |
-
-Cada serviço tem:
-
-- Estrutura de camadas DDD: `domain/`, `application/`, `infrastructure/`, `presentation/`
-- `tests/unit/` e `tests/e2e/` prontos para receber os testes
-- `packages/` na raiz do monorepo para pacotes compartilhados entre serviços (ex: `@crash/eslint`)
-
-**Frontend — a implementar.** A pasta `frontend/` existe mas o scaffold é responsabilidade do candidato. Use o framework de sua preferência:
-
-- **Vite + React** — opção mais leve, ideal se quiser controle total
-- **Next.js** — SSR out-of-the-box, boa escolha para SEO e rotas
-- **TanStack Start** — preferido na stack da Jungle Gaming
-
-O placeholder no `docker-compose.yml` está comentado — descomente e adapte com seu `Dockerfile` e porta após criar o scaffold.
-
-### Variáveis de ambiente
-
-As credenciais de infraestrutura (PostgreSQL, RabbitMQ, Keycloak) estão hardcoded no `docker-compose.yml` — são valores de desenvolvimento local, sem necessidade de `.env` no root.
-
-Cada serviço possui `.env.example` com as variáveis necessárias. Copie para `.env` antes de rodar fora do Docker:
-
-```bash
-cp services/games/.env.example services/games/.env
-cp services/wallets/.env.example services/wallets/.env
-```
-
-**Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo**.
-
 ---
 
-## 📊 Critérios de Avaliação
+## Critérios de Avaliação 📊
 
 ### Eliminatórios (todos devem passar)
 
@@ -428,7 +415,7 @@ cp services/wallets/.env.example services/wallets/.env
 
 ---
 
-## 📦 Entrega
+## Entrega 📦
 
 | Item                 | Requisito                                                |
 | -------------------- | -------------------------------------------------------- |
@@ -440,7 +427,7 @@ cp services/wallets/.env.example services/wallets/.env
 
 ---
 
-## ⭐ Bônus
+## Bônus ⭐
 
 Não obrigatórios, mas diferenciam candidatos excepcionais:
 
@@ -458,7 +445,7 @@ Não obrigatórios, mas diferenciam candidatos excepcionais:
 
 ---
 
-## ❓ Dúvidas?
+## Dúvidas? ❓
 
 Abra uma issue no seu repositório ou entre em contato com o recrutador.
 
