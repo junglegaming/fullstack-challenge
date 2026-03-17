@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+!.env.example
+
+# Build output
+dist/
+tsconfig.tsbuildinfo
+
+# Bun
+bun.lockb
+
+# OS
+.DS_Store
+
+# Logs
+*.log

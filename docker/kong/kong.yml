@@ -1,0 +1,18 @@
+_format_version: "3.0"
+
+services:
+  - name: games-service
+    url: http://games:4001
+    routes:
+      - name: games-routes
+        paths:
+          - /games
+        strip_path: true
+
+  - name: wallets-service
+    url: http://wallets:4002
+    routes:
+      - name: wallets-routes
+        paths:
+          - /wallets
+        strip_path: true

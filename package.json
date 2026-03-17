@@ -1,0 +1,17 @@
+{
+  "name": "crash-game",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "packages/*",
+    "frontend"
+  ],
+  "scripts": {
+    "docker:up": "docker compose up",
+    "docker:down": "docker compose down",
+    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
