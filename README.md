@@ -47,19 +47,19 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
                            HTTP/REST    WebSocket
                               │            │
                         ┌─────▼────────────▼────────┐
-                        │         Kong               │
-                        │      (API Gateway)         │
+                        │         Kong              │
+                        │      (API Gateway)        │
                         └─────┬────────────┬────────┘
                               │            │
                     ┌─────────▼──┐   ┌─────▼────────┐
                     │   Game     │   │   Wallet     │
                     │  Service   │   │   Service    │
                     │  (NestJS)  │   │   (NestJS)   │
-                    └──┬─────┬──┘   └──────┬───────┘
-                       │     └──────┬──────┘
-                  ┌────▼────┐  ┌────▼──────────┐
-                  │PostgreSQL│  │ RabbitMQ/SQS  │
-                  └─────────┘  └───────────────┘
+                    └──┬─────┬───┘   └──────┬───────┘
+                       │     └──────┬───────┘
+                  ┌────▼───────┐  ┌────▼──────────┐
+                  │ PostgreSQL │  │ RabbitMQ/SQS  │
+                  └────────────┘  └───────────────┘
 
               ┌─────────────────┐
               │    Keycloak     │
