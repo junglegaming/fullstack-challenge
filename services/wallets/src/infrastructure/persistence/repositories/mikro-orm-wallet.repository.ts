@@ -38,7 +38,7 @@ export class MikroOrmWalletRepository implements IWalletRepository {
         walletEntity.balanceCents = wallet.walletBalance.amount;
       }
 
-      const existingTxns = await em.find(TransactionEntity, { walletId: wallet.walletId.raw });
+      const existingTxns = await em.find(TransactionEntity, { wallet: { id: wallet.walletId.raw } });
       const existingTxnIds = new Set(existingTxns.map(t => t.id));
       const domainTxns = wallet.walletTransactions;
 
@@ -47,7 +47,6 @@ export class MikroOrmWalletRepository implements IWalletRepository {
           const txnEntity = new TransactionEntity();
           txnEntity.id = domainTxn.id.raw;
           txnEntity.wallet = walletEntity;
-          txnEntity.walletId = domainTxn.walletId.raw;
           txnEntity.type = domainTxn.type;
           txnEntity.amountCents = domainTxn.amount.amount;
           txnEntity.balanceAfterCents = domainTxn.balanceAfter.amount;
@@ -68,7 +67,7 @@ export class MikroOrmWalletRepository implements IWalletRepository {
   }
 
   private async mapToDomainWallet(walletEntity: WalletEntity): Promise<Wallet> {
-    const transactions = await this.em.find(TransactionEntity, { walletId: walletEntity.id });
+    const transactions = await this.em.find(TransactionEntity, { wallet: { id: walletEntity.id } });
     const wallet = new Wallet(
       new WalletId(walletEntity.id),
       new PlayerId(walletEntity.playerId),

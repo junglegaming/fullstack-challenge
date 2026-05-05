@@ -1,7 +1,10 @@
 import { Module } from "@nestjs/common";
+import { PassportModule } from "@nestjs/passport";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import mikroOrmConfig from "./infrastructure/persistence/mikro-orm.config";
 import { WalletsController } from "./presentation/controllers/wallets.controller";
+import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
+import { JwtStrategy } from "./infrastructure/auth/jwt.strategy";
 import { RabbitMQService } from "./infrastructure/rabbitmq/rabbitmq.service";
 import { WalletEventHandlerService } from "./application/event-handlers/wallet-event-handler.service";
 import { OutboxPublisherService } from "./infrastructure/outbox-publisher.service";
@@ -15,6 +18,7 @@ import { MikroOrmOutboxRepository } from "./infrastructure/persistence/repositor
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: "jwt" }),
     MikroOrmModule.forRoot(mikroOrmConfig),
     MikroOrmModule.forFeature({
       entities: [
@@ -27,6 +31,8 @@ import { MikroOrmOutboxRepository } from "./infrastructure/persistence/repositor
   ],
   controllers: [WalletsController],
   providers: [
+    JwtStrategy,
+    JwtAuthGuard,
     RabbitMQService,
     WalletEventHandlerService,
     OutboxPublisherService,

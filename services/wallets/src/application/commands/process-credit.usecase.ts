@@ -1,3 +1,4 @@
+import { Injectable, Inject } from '@nestjs/common';
 import { Wallet } from '../../domain/entities/wallet.entity';
 import { PlayerId } from '../../domain/value-objects/player-id.vo';
 import { Money } from '../../domain/value-objects/money.vo';
@@ -10,13 +11,14 @@ import { InboxEvent } from '../../infrastructure/persistence/entities/inbox-even
 import { OutboxEvent } from '../../infrastructure/persistence/entities/outbox-event.entity';
 import { InboxEventResult } from '../../infrastructure/persistence/entities/inbox-event.entity';
 
+@Injectable()
 export class ProcessCreditUseCase {
   private readonly MAX_RETRIES = 3;
 
   constructor(
-    private readonly walletRepository: IWalletRepository,
-    private readonly inboxRepository: IInboxRepository,
-    private readonly outboxRepository: IOutboxRepository,
+    @Inject('IWalletRepository') private readonly walletRepository: IWalletRepository,
+    @Inject('IInboxRepository') private readonly inboxRepository: IInboxRepository,
+    @Inject('IOutboxRepository') private readonly outboxRepository: IOutboxRepository,
   ) {}
 
   async execute(

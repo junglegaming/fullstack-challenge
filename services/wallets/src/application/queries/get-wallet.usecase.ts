@@ -1,9 +1,11 @@
+import { Injectable, Inject } from '@nestjs/common';
 import { PlayerId } from '../../domain/value-objects/player-id.vo';
 import { IWalletRepository } from '../ports/wallet-repository.port';
 import { GetWalletDto } from '../dtos/get-wallet.dto';
 
+@Injectable()
 export class GetWalletUseCase {
-  constructor(private readonly walletRepository: IWalletRepository) {}
+  constructor(@Inject('IWalletRepository') private readonly walletRepository: IWalletRepository) {}
 
   async execute(dto: GetWalletDto): Promise<{
     walletId: string;

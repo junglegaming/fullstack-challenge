@@ -9,10 +9,6 @@ export class TransactionEntity {
   @ManyToOne(() => WalletEntity)
   wallet!: WalletEntity;
 
-  @Property({ length: 255 })
-  @Index()
-  walletId!: string;
-
   @Property({ length: 20 })
   type!: string;
 

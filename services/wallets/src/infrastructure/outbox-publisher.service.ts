@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { IOutboxRepository } from '../application/ports/outbox-repository.port';
 import { OutboxEvent } from './persistence/entities/outbox-event.entity';
 import { StructuredLogger } from './logger/structured-logger';
@@ -18,7 +18,7 @@ export class OutboxPublisherService implements OnModuleInit, OnModuleDestroy {
   private exchange: string;
 
   constructor(
-    private readonly outboxRepository: IOutboxRepository,
+    @Inject('IOutboxRepository') private readonly outboxRepository: IOutboxRepository,
   ) {
     this.rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
     this.exchange = process.env.RABBITMQ_EXCHANGE || 'wallet_events';
