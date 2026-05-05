@@ -6,10 +6,13 @@ import { BetResponseDto } from '../dtos/bet.response.dto';
 import { BetId } from '@/domain/value-objects/bet-id.vo';
 import { Bet } from '@/domain/entities/bet.entity';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
+import { IWebSocketEmitter } from '../ports/websocket-emitter.port';
+import { BetPlacedDto } from '../../presentation/dtos/bet-placed.dto';
 
 export class PlaceBetUseCase {
   constructor(
     private readonly roundRepo: RoundRepository,
+    private readonly webSocketEmitter: IWebSocketEmitter,
   ) {}
 
   async execute(cmd: PlaceBetCommand): Promise<BetResponseDto> {
@@ -40,6 +43,15 @@ export class PlaceBetUseCase {
     );
 
     await this.roundRepo.save(round, [outboxEvent]);
+
+    this.webSocketEmitter.broadcastBetPlaced(
+      new BetPlacedDto(
+        round.roundId.raw,
+        bet.betId.raw,
+        bet.player.raw,
+        bet.betAmount.amount,
+      ),
+    );
 
     return new BetResponseDto(
       bet.betId.raw,

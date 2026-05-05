@@ -8,8 +8,10 @@ import { CrashRoundUseCase } from "./application/use-cases/crash-round.usecase";
 import { FinishRoundUseCase } from "./application/use-cases/finish-round.usecase";
 import { RoundRepositoryImpl } from "./infrastructure/repositories/round.repository.impl";
 import { OutboxWorker } from "./infrastructure/workers/outbox.worker";
+import { GameLoopService } from "./infrastructure/services/game-loop.service";
 import { RabbitMQService } from "./infrastructure/messaging/rabbitmq.service";
 import { IEventBus } from "./application/ports/event-bus.port";
+import { IWebSocketEmitter } from "./application/ports/websocket-emitter.port";
 
 @Module({
   controllers: [GamesController],
@@ -28,17 +30,27 @@ import { IEventBus } from "./application/ports/event-bus.port";
       provide: IEventBus,
       useClass: RabbitMQService,
     },
+    {
+      provide: IWebSocketEmitter,
+      useExisting: GameGateway,
+    },
     OutboxWorker,
+    GameLoopService,
   ],
 })
 export class AppModule implements OnModuleInit, OnModuleDestroy {
-  constructor(private readonly outboxWorker: OutboxWorker) {}
+  constructor(
+    private readonly outboxWorker: OutboxWorker,
+    private readonly gameLoopService: GameLoopService,
+  ) {}
 
   onModuleInit() {
     this.outboxWorker.start();
+    this.gameLoopService.startLoop();
   }
 
   onModuleDestroy() {
     this.outboxWorker.stop();
+    this.gameLoopService.stopLoop();
   }
 }

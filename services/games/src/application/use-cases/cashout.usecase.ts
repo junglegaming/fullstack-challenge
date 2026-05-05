@@ -4,10 +4,13 @@ import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { CashoutCommand } from '../commands/cashout.command';
 import { BetResponseDto } from '../dtos/bet.response.dto';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
+import { IWebSocketEmitter } from '../ports/websocket-emitter.port';
+import { BetCashedOutDto } from '../../presentation/dtos/bet-cashed-out.dto';
 
 export class CashoutUseCase {
   constructor(
     private readonly roundRepo: RoundRepository,
+    private readonly webSocketEmitter: IWebSocketEmitter,
   ) {}
 
   async execute(cmd: CashoutCommand): Promise<BetResponseDto> {
@@ -35,6 +38,16 @@ export class CashoutUseCase {
     );
 
     await this.roundRepo.save(round, [outboxEvent]);
+
+    this.webSocketEmitter.broadcastBetCashedOut(
+      new BetCashedOutDto(
+        round.roundId.raw,
+        bet.betId.raw,
+        bet.player.raw,
+        bet.cashoutMultiplierValue?.raw ?? 0,
+        bet.payout.amount,
+      ),
+    );
 
     return new BetResponseDto(
       bet.betId.raw,
