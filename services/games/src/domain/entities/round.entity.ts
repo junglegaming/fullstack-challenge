@@ -5,6 +5,22 @@ import { Bet } from './bet.entity';
 import { PlayerId } from '../value-objects/player-id.vo';
 import { BetId } from '../value-objects/bet-id.vo';
 import { Money } from '../value-objects/money.vo';
+import { InvalidStateTransitionError } from '../errors/invalid-state-transition.error';
+
+type TransitionMap = Partial<Record<RoundStatus, RoundStatus[]>>;
+
+const VALID_TRANSITIONS: TransitionMap = {
+  [RoundStatus.BETTING]: [RoundStatus.RUNNING],
+  [RoundStatus.RUNNING]: [RoundStatus.CRASHED],
+  [RoundStatus.CRASHED]: [RoundStatus.FINISHED],
+};
+
+function assertValidTransition(from: RoundStatus, to: RoundStatus): void {
+  const allowed = VALID_TRANSITIONS[from];
+  if (!allowed?.includes(to)) {
+    throw new InvalidStateTransitionError(from, to);
+  }
+}
 
 export class Round {
   private bets: Bet[];
@@ -43,15 +59,13 @@ export class Round {
   }
 
   start(): void {
-    if (this.status !== RoundStatus.BETTING) {
-      throw new Error('Round must be in BETTING state to start');
-    }
+    assertValidTransition(this.status, RoundStatus.RUNNING);
     this.status = RoundStatus.RUNNING;
   }
 
   updateMultiplier(multiplier: Multiplier): void {
     if (this.status !== RoundStatus.RUNNING) {
-      throw new Error('Can only update multiplier while RUNNING');
+      throw new InvalidStateTransitionError(this.status, RoundStatus.RUNNING);
     }
     if (multiplier.raw < this.currentMultiplier.raw) {
       throw new Error('Multiplier cannot decrease');
@@ -60,9 +74,7 @@ export class Round {
   }
 
   crash(): void {
-    if (this.status !== RoundStatus.RUNNING) {
-      throw new Error('Can only crash while RUNNING');
-    }
+    assertValidTransition(this.status, RoundStatus.CRASHED);
     this.status = RoundStatus.CRASHED;
 
     for (const bet of this.bets) {
@@ -71,15 +83,13 @@ export class Round {
   }
 
   finish(): void {
-    if (this.status !== RoundStatus.CRASHED) {
-      throw new Error('Can only finish after CRASHED');
-    }
+    assertValidTransition(this.status, RoundStatus.FINISHED);
     this.status = RoundStatus.FINISHED;
   }
 
   placeBet(betId: BetId, playerId: PlayerId, amount: Money): Bet {
     if (this.status !== RoundStatus.BETTING) {
-      throw new Error('Betting is only allowed during BETTING phase');
+      throw new InvalidStateTransitionError(this.status, RoundStatus.BETTING);
     }
 
     const existingBet = this.bets.find(b => b.player.equals(playerId));
@@ -94,7 +104,7 @@ export class Round {
 
   cashOut(playerId: PlayerId): Bet {
     if (this.status !== RoundStatus.RUNNING) {
-      throw new Error('Cashout only allowed while RUNNING');
+      throw new InvalidStateTransitionError(this.status, RoundStatus.RUNNING);
     }
 
     const bet = this.bets.find(b => b.player.equals(playerId));
