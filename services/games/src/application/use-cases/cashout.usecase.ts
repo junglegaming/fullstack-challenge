@@ -1,31 +1,41 @@
-import { EventBus } from '../../shared/event-bus';
-import { RoundRepository } from "@/infrastructure/repositories/round.repository";
+import { RoundRepository } from '@/domain/repositories/round.repository';
+import { IEventBus } from '@/domain/application/ports/event-bus.port';
+import { CashoutCommand } from '../commands/cashout.command';
+import { BetResponseDto } from '../dtos/bet.response.dto';
+import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
 
 export class CashoutUseCase {
   constructor(
-    private roundRepo: RoundRepository,
-    private eventBus: EventBus,
+    private readonly roundRepo: RoundRepository,
+    private readonly eventBus: IEventBus,
   ) {}
 
-  async execute(playerId: string) {
+  async execute(cmd: CashoutCommand): Promise<BetResponseDto> {
     const round = await this.roundRepo.getCurrent();
 
-    const bet = round.bets.find(b => b.playerId === playerId);
+    if (round.roundStatus !== 'RUNNING') {
+      throw new InvalidStateTransitionError(round.roundStatus, 'RUNNING');
+    }
 
-    if (!bet) throw new Error('No bet found');
-
-    bet.cashOut(round.currentMultiplier);
+    const bet = round.cashOut(cmd.playerId);
 
     await this.roundRepo.save(round);
 
     await this.eventBus.publish({
       type: 'cashout_requested',
       payload: {
-        playerId,
-        amount: bet.payout,
+        playerId: cmd.playerId.raw,
+        amount: Number(bet.payout.amount),
       },
     });
 
-    return bet;
+    return new BetResponseDto(
+      bet.betId.raw,
+      bet.player.raw,
+      bet.betAmount.amount,
+      bet.betStatus,
+      bet.cashoutMultiplierValue?.raw ?? null,
+      bet.payout.amount,
+    );
   }
 }
