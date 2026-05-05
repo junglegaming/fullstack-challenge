@@ -9,7 +9,7 @@ const MAX_RETRIES = 3;
 export class RabbitMQConsumer implements IEventConsumer {
   private connection: any;
   private channel: any;
-  private handlers: Map<string, (payload: Record<string, unknown>) => Promise<void>> = new Map();
+  private handlers: Map<string, (payload: Record<string, unknown>, messageId?: string) => Promise<void>> = new Map();
   private logger: StructuredLogger;
   private retryCount: Map<string, number> = new Map();
 
@@ -21,7 +21,7 @@ export class RabbitMQConsumer implements IEventConsumer {
     this.logger = new StructuredLogger('wallet-service-rabbitmq');
   }
 
-  subscribe(eventType: string, handler: (payload: Record<string, unknown>) => Promise<void>): void {
+  subscribe(eventType: string, handler: (payload: Record<string, unknown>, messageId?: string) => Promise<void>): void {
     this.handlers.set(eventType, handler);
     this.logger.info(`Subscribed handler for event type: ${eventType}`);
   }
@@ -90,7 +90,7 @@ export class RabbitMQConsumer implements IEventConsumer {
         return;
       }
 
-      await handler(payload);
+      await handler(payload, messageId);
 
       channel.ack(msg);
       this.logger.info(`Event ${eventType} processed successfully`, { messageId });

@@ -2,34 +2,106 @@ import { Wallet } from '../../domain/entities/wallet.entity';
 import { PlayerId } from '../../domain/value-objects/player-id.vo';
 import { Money } from '../../domain/value-objects/money.vo';
 import { IWalletRepository } from '../ports/wallet-repository.port';
+import { IInboxRepository } from '../ports/inbox-repository.port';
+import { IOutboxRepository } from '../ports/outbox-repository.port';
 import { BetPlacedEventDto } from '../dtos/bet-placed-event.dto';
+import { WalletUpdatedEventDto } from '../dtos/wallet-updated-event.dto';
+import { InboxEvent } from '../../infrastructure/persistence/entities/inbox-event.entity';
+import { OutboxEvent } from '../../infrastructure/persistence/entities/outbox-event.entity';
+import { InboxEventResult } from '../../infrastructure/persistence/entities/inbox-event.entity';
 
 export class ProcessDebitUseCase {
-  constructor(private readonly walletRepository: IWalletRepository) {}
+  private readonly MAX_RETRIES = 3;
 
-  async execute(event: BetPlacedEventDto): Promise<{ transactionId: string; newBalanceCents: bigint }> {
+  constructor(
+    private readonly walletRepository: IWalletRepository,
+    private readonly inboxRepository: IInboxRepository,
+    private readonly outboxRepository: IOutboxRepository,
+  ) {}
+
+  async execute(
+    event: BetPlacedEventDto,
+    messageId?: string,
+  ): Promise<{ transactionId: string; newBalanceCents: bigint }> {
     const playerId = new PlayerId(event.playerId);
     const amount = new Money(event.amountCents);
-    const referenceId = event.betId; // Use betId as idempotency key
+    const referenceId = event.betId;
 
-    const wallet = await this.walletRepository.findByPlayerId(playerId);
-    if (!wallet) {
-      throw new Error(`Wallet not found for player ${event.playerId}`);
+    // Use messageId as inbox key, fallback to referenceId
+    const inboxKey = messageId || `bet-placed-${referenceId}`;
+
+    // Inbox: check if already processed
+    const inboxEvent = await this.inboxRepository.findById(inboxKey);
+    if (inboxEvent && inboxEvent.status === 'PROCESSED') {
+      // Already processed, return stored result (idempotency)
+      if (inboxEvent.result) {
+        return inboxEvent.result;
+      }
+      // Fallback: should not happen, but return error
+      throw new Error(`Event ${inboxKey} processed but no result stored`);
     }
 
-    // Validate balance before debiting (the wallet entity also validates, but we do an early check)
-    if (wallet.walletBalance.isLessThan(amount)) {
-      throw new Error('Insufficient funds');
+    // Create inbox entry if not exists
+    const inbox = inboxEvent || new InboxEvent(
+      inboxKey,
+      'BetPlaced',
+      { playerId: event.playerId, amountCents: event.amountCents, betId: event.betId },
+      'PENDING',
+    );
+
+    if (!inboxEvent) {
+      await this.inboxRepository.save(inbox);
     }
 
-    // Idempotency: if same referenceId was already processed, returns existing transaction
-    const transaction = wallet.debit(amount, referenceId);
+    try {
+      const wallet = await this.walletRepository.findByPlayerId(playerId);
+      if (!wallet) {
+        throw new Error(`Wallet not found for player ${event.playerId}`);
+      }
 
-    await this.walletRepository.save(wallet);
+      // Validate balance
+      if (wallet.walletBalance.isLessThan(amount)) {
+        throw new Error('Insufficient funds');
+      }
 
-    return {
-      transactionId: transaction.id.raw,
-      newBalanceCents: wallet.walletBalance.amount,
-    };
+      // Idempotency in domain (referenceId check)
+      const transaction = wallet.debit(amount, referenceId);
+
+      // Save wallet
+      await this.walletRepository.save(wallet);
+
+      // Prepare result
+      const result: InboxEventResult = {
+        transactionId: transaction.id.raw,
+        newBalanceCents: wallet.walletBalance.amount,
+      };
+
+      // Outbox: create WalletUpdated event
+      const outboxEvent = new OutboxEvent(
+        crypto.randomUUID(),
+        'WalletUpdated',
+        new WalletUpdatedEventDto(
+          wallet.walletId.raw,
+          wallet.walletPlayerId.raw,
+          wallet.walletBalance.amount,
+          transaction.id.raw,
+          'DEBIT',
+          referenceId,
+          new Date().toISOString(),
+        ),
+      );
+      await this.outboxRepository.save(outboxEvent);
+
+      // Mark inbox as processed with result
+      inbox.markAsProcessed(result);
+      await this.inboxRepository.update(inbox);
+
+      return result;
+    } catch (error) {
+      // Mark inbox as failed
+      inbox.markAsFailed(error as Error, this.MAX_RETRIES);
+      await this.inboxRepository.update(inbox);
+      throw error;
+    }
   }
 }

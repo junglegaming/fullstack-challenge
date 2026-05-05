@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { ProcessCreditUseCase } from '@/application/commands/process-credit.usecase';
 import { MockWalletRepository } from './mock-wallet-repository';
+import { MockInboxRepository } from '../../../src/infrastructure/persistence/repositories/mock-inbox.repository';
+import { MockOutboxRepository } from '../../../src/infrastructure/persistence/repositories/mock-outbox.repository';
 import { CreateWalletUseCase } from '@/application/commands/create-wallet.usecase';
 import { PlayerId } from '@/domain/value-objects/player-id.vo';
 import { Money } from '@/domain/value-objects/money.vo';
@@ -8,13 +10,17 @@ import { BetSettledEventDto } from '@/application/dtos/bet-settled-event.dto';
 
 describe('ProcessCreditUseCase', () => {
   let repo: MockWalletRepository;
+  let inboxRepo: MockInboxRepository;
+  let outboxRepo: MockOutboxRepository;
   let createWalletUseCase: CreateWalletUseCase;
   let processCreditUseCase: ProcessCreditUseCase;
 
   beforeEach(() => {
     repo = new MockWalletRepository();
+    inboxRepo = new MockInboxRepository();
+    outboxRepo = new MockOutboxRepository();
     createWalletUseCase = new CreateWalletUseCase(repo);
-    processCreditUseCase = new ProcessCreditUseCase(repo);
+    processCreditUseCase = new ProcessCreditUseCase(repo, inboxRepo, outboxRepo);
   });
 
   it('processes credit on bet settled event', async () => {

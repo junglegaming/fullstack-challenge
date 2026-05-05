@@ -20,41 +20,47 @@ export class WalletEventHandlerService implements OnApplicationBootstrap {
     const consumer = this.rabbitMQService.getConsumer();
 
     // Subscribe to BetPlaced event → debit
-    consumer.subscribe('BetPlaced', async (payload) => {
-      this.logger.info('Processing BetPlaced event', { payload });
+    consumer.subscribe('BetPlaced', async (payload, messageId) => {
+      this.logger.info('Processing BetPlaced event', { payload, messageId });
       try {
         const { playerId, amountCents, betId } = payload as Record<string, unknown>;
         if (!playerId || !amountCents || !betId) {
           throw new Error('Invalid BetPlaced payload: missing required fields');
         }
-        await this.processDebitUseCase.execute({
-          playerId: playerId as string,
-          amountCents: BigInt(amountCents as string | number),
-          betId: betId as string,
-        } as any);
+        await this.processDebitUseCase.execute(
+          {
+            playerId: playerId as string,
+            amountCents: BigInt(amountCents as string | number),
+            betId: betId as string,
+          } as any,
+          messageId,
+        );
         this.logger.info('BetPlaced processed successfully', { betId });
       } catch (error) {
-        this.logger.error('Error processing BetPlaced', { payload }, error as Error);
+        this.logger.error('Error processing BetPlaced', { payload, messageId }, error as Error);
         throw error;
       }
     });
 
     // Subscribe to CashoutRequested event → credit
-    consumer.subscribe('CashoutRequested', async (payload) => {
-      this.logger.info('Processing CashoutRequested event', { payload });
+    consumer.subscribe('CashoutRequested', async (payload, messageId) => {
+      this.logger.info('Processing CashoutRequested event', { payload, messageId });
       try {
         const { playerId, amountCents, betId } = payload as Record<string, unknown>;
         if (!playerId || !amountCents || !betId) {
           throw new Error('Invalid CashoutRequested payload: missing required fields');
         }
-        await this.processCreditUseCase.execute({
-          playerId: playerId as string,
-          amountCents: BigInt(amountCents as string | number),
-          betId: betId as string,
-        } as any);
+        await this.processCreditUseCase.execute(
+          {
+            playerId: playerId as string,
+            amountCents: BigInt(amountCents as string | number),
+            betId: betId as string,
+          } as any,
+          messageId,
+        );
         this.logger.info('CashoutRequested processed successfully', { betId });
       } catch (error) {
-        this.logger.error('Error processing CashoutRequested', { payload }, error as Error);
+        this.logger.error('Error processing CashoutRequested', { payload, messageId }, error as Error);
         throw error;
       }
     });

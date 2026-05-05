@@ -8,7 +8,7 @@ export interface IEventBus {
 }
 
 export interface IEventConsumer {
-  subscribe(eventType: string, handler: (payload: Record<string, unknown>) => Promise<void>): void;
+  subscribe(eventType: string, handler: (payload: Record<string, unknown>, messageId?: string) => Promise<void>): void;
   start(): Promise<void>;
   stop(): Promise<void>;
 }

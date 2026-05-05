@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { ProcessDebitUseCase } from '@/application/commands/process-debit.usecase';
 import { MockWalletRepository } from './mock-wallet-repository';
+import { MockInboxRepository } from '../../../src/infrastructure/persistence/repositories/mock-inbox.repository';
+import { MockOutboxRepository } from '../../../src/infrastructure/persistence/repositories/mock-outbox.repository';
 import { CreateWalletUseCase } from '@/application/commands/create-wallet.usecase';
 import { PlayerId } from '@/domain/value-objects/player-id.vo';
 import { Money } from '@/domain/value-objects/money.vo';
@@ -8,13 +10,17 @@ import { BetPlacedEventDto } from '@/application/dtos/bet-placed-event.dto';
 
 describe('ProcessDebitUseCase', () => {
   let repo: MockWalletRepository;
+  let inboxRepo: MockInboxRepository;
+  let outboxRepo: MockOutboxRepository;
   let createWalletUseCase: CreateWalletUseCase;
   let processDebitUseCase: ProcessDebitUseCase;
 
   beforeEach(() => {
     repo = new MockWalletRepository();
+    inboxRepo = new MockInboxRepository();
+    outboxRepo = new MockOutboxRepository();
     createWalletUseCase = new CreateWalletUseCase(repo);
-    processDebitUseCase = new ProcessDebitUseCase(repo);
+    processDebitUseCase = new ProcessDebitUseCase(repo, inboxRepo, outboxRepo);
   });
 
   it('processes debit on valid bet placed event', async () => {
