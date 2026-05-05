@@ -1,5 +1,6 @@
 import { RoundRepository } from '@/domain/repositories/round.repository';
-import { IEventBus } from '@/domain/application/ports/event-bus.port';
+import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
+import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { CashoutCommand } from '../commands/cashout.command';
 import { BetResponseDto } from '../dtos/bet.response.dto';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
@@ -7,7 +8,6 @@ import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-trans
 export class CashoutUseCase {
   constructor(
     private readonly roundRepo: RoundRepository,
-    private readonly eventBus: IEventBus,
   ) {}
 
   async execute(cmd: CashoutCommand): Promise<BetResponseDto> {
@@ -19,15 +19,22 @@ export class CashoutUseCase {
 
     const bet = round.cashOut(cmd.playerId);
 
-    await this.roundRepo.save(round);
-
-    await this.eventBus.publish({
-      type: 'cashout_requested',
-      payload: {
+    const outboxEvent = new OutboxEvent(
+      new OutboxEventId(`cashout-${bet.betId.raw}`),
+      'Bet',
+      bet.betId.raw,
+      'cashout_requested',
+      {
+        betId: bet.betId.raw,
         playerId: cmd.playerId.raw,
-        amount: Number(bet.payout.amount),
+        roundId: round.roundId.raw,
+        amountCents: Number(bet.payout.amount),
+        multiplier: bet.cashoutMultiplierValue?.raw ?? 0,
+        idempotencyKey: `cashout-${bet.betId.raw}`,
       },
-    });
+    );
+
+    await this.roundRepo.save(round, [outboxEvent]);
 
     return new BetResponseDto(
       bet.betId.raw,

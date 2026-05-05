@@ -1,5 +1,6 @@
 import { RoundRepository } from '@/domain/repositories/round.repository';
-import { IEventBus } from '@/application/ports/event-bus.port';
+import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
+import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { PlaceBetCommand } from '../commands/place-bet.command';
 import { BetResponseDto } from '../dtos/bet.response.dto';
 import { BetId } from '@/domain/value-objects/bet-id.vo';
@@ -9,7 +10,6 @@ import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-trans
 export class PlaceBetUseCase {
   constructor(
     private readonly roundRepo: RoundRepository,
-    private readonly eventBus: IEventBus,
   ) {}
 
   async execute(cmd: PlaceBetCommand): Promise<BetResponseDto> {
@@ -25,15 +25,21 @@ export class PlaceBetUseCase {
       cmd.amount,
     );
 
-    await this.roundRepo.save(round);
-
-    await this.eventBus.publish({
-      type: 'bet_requested',
-      payload: {
+    const outboxEvent = new OutboxEvent(
+      new OutboxEventId(bet.betId.raw),
+      'Bet',
+      bet.betId.raw,
+      'bet_placed',
+      {
+        betId: bet.betId.raw,
         playerId: cmd.playerId.raw,
-        amount: Number(cmd.amount.amount),
+        roundId: round.roundId.raw,
+        amountCents: Number(cmd.amount.amount),
+        idempotencyKey: bet.betId.raw,
       },
-    });
+    );
+
+    await this.roundRepo.save(round, [outboxEvent]);
 
     return new BetResponseDto(
       bet.betId.raw,

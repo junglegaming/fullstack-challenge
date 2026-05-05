@@ -1,4 +1,6 @@
 import { RoundRepository } from '@/domain/repositories/round.repository';
+import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
+import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { CrashRoundCommand } from '../commands/crash-round.command';
 import { RoundResponseDto } from '../dtos/round.response.dto';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
@@ -16,7 +18,20 @@ export class CrashRoundUseCase {
     }
 
     round.crash();
-    await this.roundRepo.save(round);
+
+    const outboxEvent = new OutboxEvent(
+      new OutboxEventId(`round-crashed-${round.roundId.raw}`),
+      'Round',
+      round.roundId.raw,
+      'round_crashed',
+      {
+        roundId: round.roundId.raw,
+        status: round.roundStatus,
+        crashPoint: round.roundCrashPoint.raw,
+      },
+    );
+
+    await this.roundRepo.save(round, [outboxEvent]);
 
     return new RoundResponseDto(
       round.roundId.raw,

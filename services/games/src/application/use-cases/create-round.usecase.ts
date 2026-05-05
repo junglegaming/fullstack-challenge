@@ -1,4 +1,5 @@
-import { Round, RoundStatus } from "@/domain/entities/round.entity";
+import { Round } from "@/domain/entities/round.entity";
+import { RoundStatus } from "@/domain/enums/round-status.enum";
 import { CrashService } from "@/domain/services/crash.service";
 import { RoundRepository } from "@/infrastructure/repositories/round.repository";
 
