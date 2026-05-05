@@ -54,6 +54,6 @@ export class Bet {
     if (this.status !== BetStatus.CASHED_OUT || !this.cashoutMultiplier) {
       return Money.zero();
     }
-    return this.amount.multiply(this.cashoutMultiplier.raw);
+    return this.amount.multiply(this.cashoutMultiplier.toDecimalString());
   }
 }

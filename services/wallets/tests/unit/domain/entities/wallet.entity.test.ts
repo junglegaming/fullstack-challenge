@@ -147,49 +147,164 @@ describe('Wallet', () => {
   });
 
   describe('idempotency', () => {
-    it('returns existing CONFIRMED transaction for same referenceId', () => {
-      const wallet = new Wallet(
-        new WalletId('wallet-1'),
-        new PlayerId('player-1'),
-        Money.fromReais(100),
-      );
+    describe('debit idempotency', () => {
+      it('returns existing transaction for same referenceId without duplicating balance change', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
 
-      const txn1 = wallet.debit(Money.fromReais(30), 'bet-idempotent');
-      const txn2 = wallet.debit(Money.fromReais(30), 'bet-idempotent'); // Same referenceId
+        const txn1 = wallet.debit(Money.fromReais(30), 'bet-idempotent');
+        const txn2 = wallet.debit(Money.fromReais(30), 'bet-idempotent'); // Same referenceId
 
-      expect(txn2).toBe(txn1); // Same transaction returned
-      expect(wallet.walletTransactions.length).toBe(1); // No duplicate
-      expect(wallet.walletBalance.amount).toBe(7000n); // Debited only once
+        expect(txn2).toBe(txn1); // Same transaction object returned
+        expect(wallet.walletTransactions.length).toBe(1); // No duplicate transaction
+        expect(wallet.walletBalance.amount).toBe(7000n); // Debited only once
+      });
+
+      it('ignores amount change on duplicate call with different amount', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
+
+        const txn1 = wallet.debit(Money.fromReais(30), 'bet-123');
+        const txn2 = wallet.debit(Money.fromReais(999), 'bet-123'); // Different amount, same referenceId
+
+        expect(txn2).toBe(txn1); // Still returns original
+        expect(txn2.amount.amount).toBe(3000n); // Original amount preserved
+        expect(wallet.walletBalance.amount).toBe(7000n); // Balance unchanged by second call
+      });
+
+      it('handles multiple duplicate calls gracefully', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
+
+        const txn1 = wallet.debit(Money.fromReais(10), 'bet-1');
+
+        // Multiple duplicate calls
+        const txn2 = wallet.debit(Money.fromReais(10), 'bet-1');
+        const txn3 = wallet.debit(Money.fromReais(10), 'bet-1');
+        const txn4 = wallet.debit(Money.fromReais(10), 'bet-1');
+
+        expect(txn2).toBe(txn1);
+        expect(txn3).toBe(txn1);
+        expect(txn4).toBe(txn1);
+        expect(wallet.walletTransactions.length).toBe(1);
+        expect(wallet.walletBalance.amount).toBe(9000n);
+      });
     });
 
-    it('prevents duplicate credit with same referenceId', () => {
-      const wallet = new Wallet(
-        new WalletId('wallet-1'),
-        new PlayerId('player-1'),
-        Money.zero(),
-      );
+    describe('credit idempotency', () => {
+      it('returns existing transaction for same referenceId without duplicating balance change', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.zero(),
+        );
 
-      const txn1 = wallet.credit(Money.fromReais(50), 'cashout-idempotent');
-      const txn2 = wallet.credit(Money.fromReais(50), 'cashout-idempotent');
+        const txn1 = wallet.credit(Money.fromReais(50), 'cashout-idempotent');
+        const txn2 = wallet.credit(Money.fromReais(50), 'cashout-idempotent');
 
-      expect(txn2).toBe(txn1);
-      expect(wallet.walletTransactions.length).toBe(1);
-      expect(wallet.walletBalance.amount).toBe(5000n); // Credited only once
+        expect(txn2).toBe(txn1);
+        expect(wallet.walletTransactions.length).toBe(1);
+        expect(wallet.walletBalance.amount).toBe(5000n); // Credited only once
+      });
+
+      it('ignores amount change on duplicate credit with different amount', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.zero(),
+        );
+
+        const txn1 = wallet.credit(Money.fromReais(50), 'dep-123');
+        const txn2 = wallet.credit(Money.fromReais(9999), 'dep-123');
+
+        expect(txn2).toBe(txn1);
+        expect(txn2.amount.amount).toBe(5000n); // Original amount preserved
+        expect(wallet.walletBalance.amount).toBe(5000n);
+      });
     });
 
-    it('different referenceIds create separate transactions', () => {
-      const wallet = new Wallet(
-        new WalletId('wallet-1'),
-        new PlayerId('player-1'),
-        Money.fromReais(100),
-      );
+    describe('referenceId uniqueness', () => {
+      it('different referenceIds create separate transactions', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
 
-      const txn1 = wallet.debit(Money.fromReais(10), 'bet-1');
-      const txn2 = wallet.debit(Money.fromReais(20), 'bet-2');
+        const txn1 = wallet.debit(Money.fromReais(10), 'bet-1');
+        const txn2 = wallet.debit(Money.fromReais(20), 'bet-2');
 
-      expect(txn1).not.toBe(txn2);
-      expect(wallet.walletTransactions.length).toBe(2);
-      expect(wallet.walletBalance.amount).toBe(7000n);
+        expect(txn1).not.toBe(txn2);
+        expect(wallet.walletTransactions.length).toBe(2);
+        expect(wallet.walletBalance.amount).toBe(7000n);
+      });
+
+      it('same referenceId used for debit then credit creates only one transaction (debit wins)', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
+
+        const debitTxn = wallet.debit(Money.fromReais(30), 'ref-123');
+        const creditTxn = wallet.credit(Money.fromReais(50), 'ref-123'); // Same referenceId
+
+        // Returns the original debit transaction
+        expect(creditTxn).toBe(debitTxn);
+        expect(creditTxn.type).toBe('DEBIT'); // Original type preserved
+        expect(wallet.walletTransactions.length).toBe(1);
+        expect(wallet.walletBalance.amount).toBe(7000n); // Only debited, not credited
+      });
+    });
+
+    describe('real-world scenarios', () => {
+      it('simulates network timeout retry: client retries same request after timeout', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(200),
+        );
+
+        // Initial request (client times out waiting for response)
+        const txn1 = wallet.debit(Money.fromReais(50), 'bet-timeout-1');
+
+        // Client retries with same referenceId
+        const txn2 = wallet.debit(Money.fromReais(50), 'bet-timeout-1');
+
+        // Same transaction, no double debit
+        expect(txn2).toBe(txn1);
+        expect(wallet.walletBalance.amount).toBe(15000n); // 200 - 50 = 150
+        expect(wallet.walletTransactions.length).toBe(1);
+      });
+
+      it('simulates duplicate event from message queue', () => {
+        const wallet = new Wallet(
+          new WalletId('wallet-1'),
+          new PlayerId('player-1'),
+          Money.fromReais(100),
+        );
+
+        // Event processed successfully
+        const txn1 = wallet.credit(Money.fromReais(25), 'event-123');
+
+        // Same event delivered again (at-least-once delivery)
+        const txn2 = wallet.credit(Money.fromReais(25), 'event-123');
+        const txn3 = wallet.credit(Money.fromReais(25), 'event-123');
+
+        expect(txn2).toBe(txn1);
+        expect(txn3).toBe(txn1);
+        expect(wallet.walletBalance.amount).toBe(12500n); // 100 + 25 = 125, only once
+        expect(wallet.walletTransactions.length).toBe(1);
+      });
     });
   });
 

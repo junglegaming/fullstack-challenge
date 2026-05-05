@@ -1,4 +1,4 @@
 export class HealthCheckResponseDto {
-  status: string;
-  service: string;
+  status!: string;
+  service!: string;
 }

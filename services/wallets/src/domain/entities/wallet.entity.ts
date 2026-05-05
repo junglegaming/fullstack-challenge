@@ -7,6 +7,7 @@ import { TransactionType } from '../value-objects/transaction-type.vo';
 
 export class Wallet {
   private transactions: Transaction[] = [];
+  private confirmedByReference: Map<string, Transaction> = new Map();
 
   constructor(
     private readonly id: WalletId,
@@ -35,10 +36,8 @@ export class Wallet {
   debit(amount: Money, referenceId: string): Transaction {
     if (amount.amount <= 0n) throw new Error('Debit amount must be positive');
 
-    // Check idempotency: if transaction with same referenceId exists and is CONFIRMED, return it
-    const existing = this.transactions.find(
-      t => t.referenceId === referenceId && t.status === 'CONFIRMED'
-    );
+    // Idempotency: return existing confirmed transaction
+    const existing = this.confirmedByReference.get(referenceId);
     if (existing) return existing;
 
     // Check for PENDING with same referenceId (avoid duplicates)
@@ -65,16 +64,15 @@ export class Wallet {
     );
 
     this.transactions.push(transaction);
+    this.confirmedByReference.set(referenceId, transaction);
     return transaction;
   }
 
   credit(amount: Money, referenceId: string): Transaction {
     if (amount.amount <= 0n) throw new Error('Credit amount must be positive');
 
-    // Check idempotency
-    const existing = this.transactions.find(
-      t => t.referenceId === referenceId && t.status === 'CONFIRMED'
-    );
+    // Idempotency: return existing confirmed transaction
+    const existing = this.confirmedByReference.get(referenceId);
     if (existing) return existing;
 
     const pending = this.transactions.find(
@@ -95,6 +93,7 @@ export class Wallet {
     );
 
     this.transactions.push(transaction);
+    this.confirmedByReference.set(referenceId, transaction);
     return transaction;
   }
 
