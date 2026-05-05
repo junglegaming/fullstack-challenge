@@ -1,30 +1,59 @@
-export type BetStatus = 'ACTIVE' | 'CASHED_OUT' | 'LOST';
+import { BetId } from '../value-objects/bet-id.vo';
+import { PlayerId } from '../value-objects/player-id.vo';
+import { Money } from '../value-objects/money.vo';
+import { Multiplier } from '../value-objects/multiplier.vo';
+import { BetStatus } from '../enums/bet-status.enum';
 
 export class Bet {
+  private status: BetStatus;
+  private cashoutMultiplier: Multiplier | null;
+
   constructor(
-    public readonly id: string,
-    public readonly playerId: string,
-    public readonly amount: number, // centavos
-    public status: BetStatus = 'ACTIVE',
-    public cashoutMultiplier?: number,
-  ) {}
+    private readonly id: BetId,
+    private readonly playerId: PlayerId,
+    private readonly amount: Money,
+  ) {
+    this.status = BetStatus.ACTIVE;
+    this.cashoutMultiplier = null;
+  }
 
-  cashOut(multiplier: number) {
-    if (this.status !== 'ACTIVE') {
-      throw new Error('Bet already finished');
+  get betId(): BetId {
+    return this.id;
+  }
+
+  get player(): PlayerId {
+    return this.playerId;
+  }
+
+  get betAmount(): Money {
+    return this.amount;
+  }
+
+  get betStatus(): BetStatus {
+    return this.status;
+  }
+
+  get cashoutMultiplierValue(): Multiplier | null {
+    return this.cashoutMultiplier;
+  }
+
+  cashOut(multiplier: Multiplier): void {
+    if (this.status !== BetStatus.ACTIVE) {
+      throw new Error('Bet is already finished');
     }
-
-    this.status = 'CASHED_OUT';
+    this.status = BetStatus.CASHED_OUT;
     this.cashoutMultiplier = multiplier;
   }
 
-  lose() {
-    this.status = 'LOST';
+  lose(): void {
+    if (this.status !== BetStatus.ACTIVE) return;
+    this.status = BetStatus.LOST;
   }
 
-  get payout(): number {
-    if (!this.cashoutMultiplier) return 0;
-
-    return Math.floor(this.amount * this.cashoutMultiplier);
+  get payout(): Money {
+    if (this.status !== BetStatus.CASHED_OUT || !this.cashoutMultiplier) {
+      return Money.zero();
+    }
+    return this.amount.multiply(this.cashoutMultiplier.raw);
   }
 }
