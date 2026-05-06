@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
 // Types
-interface Round {
+export interface Round {
   id: string;
   crashPoint: number;
   startedAt: number;
 }
 
-interface Bet {
+export interface Bet {
   betId: string;
   playerId: string;
   amountCents: number;
@@ -15,7 +15,7 @@ interface Bet {
   cashoutMultiplier?: number;
 }
 
-interface UserBet extends Bet {
+export interface UserBet extends Bet {
   payoutCents?: number;
 }
 

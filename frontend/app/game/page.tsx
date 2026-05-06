@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
 import { useRouter } from "next/navigation";
-import wsService from "@/services/websocket";
+import wsService, { useGameSocket } from "@/services/websocket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -150,9 +150,9 @@ export default function GamePage() {
     bets,
     userBet,
     setBalance,
-    setPhase,
-    updateMultiplier,
   } = useGameStore();
+
+  const { connect, disconnect } = useGameSocket();
 
   useEffect(() => {
     const t = localStorage.getItem("kc_token");
@@ -163,12 +163,12 @@ export default function GamePage() {
     setToken(t);
     api.setToken(t);
 
-    wsService.connect();
+    connect();
 
     return () => {
-      wsService.disconnect();
+      disconnect();
     };
-  }, [router]);
+  }, [router, connect, disconnect]);
 
   const handlePlaceBet = async () => {
     const amountCents = Math.round(parseFloat(betAmount) * 100);
