@@ -12,6 +12,8 @@
     "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.13",
+    "@types/node": "^25.6.0",
     "bun-types": "latest"
   }
 }
