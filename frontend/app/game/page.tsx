@@ -81,7 +81,7 @@ const BetAmountButton = React.memo(function BetAmountButton({
   );
 });
 
-const BetControls = React.memo(function BetControls({
+export const BetControls = React.memo(function BetControls({
   betAmount,
   phase,
   userBet,
