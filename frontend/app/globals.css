@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
 :root {
-  --background: 0 0% 7%;
+  --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
-  --card: 0 0% 10%;
+
+  --card: 240 10% 6%;
   --card-foreground: 0 0% 98%;
-  --popover: 0 0% 10%;
+
+  --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
-  --primary: 142 76% 36%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 15%;
+
+  --primary: 155 100% 50%;
+  --primary-foreground: 0 0% 0%;
+
+  --secondary: 270 100% 50%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 15%;
+
+  --muted: 240 5% 15%;
+  --muted-foreground: 240 5% 65%;
+
+  --accent: 270 100% 50%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+
+  --destructive: 348 83% 47%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 142 76% 36%;
+
+  --border: 240 5% 15%;
+  --input: 240 5% 15%;
+  --ring: 155 100% 50%;
+
   --radius: 0.5rem;
+
+  --neon-green: 155 100% 50%;
+  --neon-purple: 270 100% 50%;
+  --neon-red: 348 83% 47%;
+  --neon-yellow: 60 100% 50%;
 }
 
 * {
@@ -31,4 +45,188 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Neon Glow Effects */
+.neon-green {
+  color: hsl(var(--neon-green));
+  text-shadow: 0 0 10px hsla(var(--neon-green), 0.8), 0 0 40px hsla(var(--neon-green), 0.4),
+    0 0 80px hsla(var(--neon-green), 0.2);
+}
+
+.neon-purple {
+  color: hsl(var(--neon-purple));
+  text-shadow: 0 0 10px hsla(var(--neon-purple), 0.8), 0 0 40px hsla(var(--neon-purple), 0.4),
+    0 0 80px hsla(var(--neon-purple), 0.2);
+}
+
+.neon-red {
+  color: hsl(var(--neon-red));
+  text-shadow: 0 0 10px hsla(var(--neon-red), 0.8), 0 0 40px hsla(var(--neon-red), 0.4),
+    0 0 80px hsla(var(--neon-red), 0.2);
+}
+
+.neon-yellow {
+  color: hsl(var(--neon-yellow));
+  text-shadow: 0 0 10px hsla(var(--neon-yellow), 0.8), 0 0 40px hsla(var(--neon-yellow), 0.4),
+    0 0 80px hsla(var(--neon-yellow), 0.2);
+}
+
+/* Glow Box Shadows */
+.glow-green {
+  box-shadow: 0 0 10px hsla(var(--neon-green), 0.5), 0 0 30px hsla(var(--neon-green), 0.3),
+    0 0 60px hsla(var(--neon-green), 0.1);
+}
+
+.glow-purple {
+  box-shadow: 0 0 10px hsla(var(--neon-purple), 0.5), 0 0 30px hsla(var(--neon-purple), 0.3),
+    0 0 60px hsla(var(--neon-purple), 0.1);
+}
+
+.glow-red {
+  box-shadow: 0 0 10px hsla(var(--neon-red), 0.5), 0 0 30px hsla(var(--neon-red), 0.3),
+    0 0 60px hsla(var(--neon-red), 0.1);
+}
+
+/* Card with neon border */
+.card-neon {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 0 15px hsla(var(--neon-green), 0.1);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-neon:hover {
+  border-color: hsla(var(--neon-green), 0.5);
+  box-shadow: 0 0 20px hsla(var(--neon-green), 0.2), 0 0 40px hsla(var(--neon-green), 0.1);
+}
+
+/* Button glow effects */
+.btn-glow-green {
+  background-color: hsl(var(--neon-green));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 0 15px hsla(var(--neon-green), 0.6), 0 0 30px hsla(var(--neon-green), 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-glow-green:hover {
+  box-shadow: 0 0 20px hsla(var(--neon-green), 0.8), 0 0 40px hsla(var(--neon-green), 0.5),
+    0 0 60px hsla(var(--neon-green), 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-glow-red {
+  background-color: hsl(var(--neon-red));
+  color: hsl(var(--destructive-foreground));
+  box-shadow: 0 0 15px hsla(var(--neon-red), 0.6), 0 0 30px hsla(var(--neon-red), 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-glow-red:hover {
+  box-shadow: 0 0 20px hsla(var(--neon-red), 0.8), 0 0 40px hsla(var(--neon-red), 0.5),
+    0 0 60px hsla(var(--neon-red), 0.3);
+  transform: translateY(-1px);
+}
+
+/* Smooth transitions for all interactive elements */
+a, button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+/* Crash explosion animation */
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.explode {
+  animation: explode 0.5s ease-out forwards;
+}
+
+/* Pulse glow for active elements */
+@keyframes pulse-glow-green {
+  0%, 100% {
+    box-shadow: 0 0 10px hsla(var(--neon-green), 0.4), 0 0 20px hsla(var(--neon-green), 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px hsla(var(--neon-green), 0.8), 0 0 40px hsla(var(--neon-green), 0.4);
+  }
+}
+
+.pulse-glow-green {
+  animation: pulse-glow-green 2s ease-in-out infinite;
+}
+
+/* Gradient backgrounds */
+.bg-casino {
+  background: linear-gradient(135deg, hsl(240 10% 3.9%) 0%, hsl(240 15% 6%) 50%, hsl(240 10% 3.9%) 100%);
+}
+
+.bg-casino-card {
+  background: linear-gradient(145deg, hsl(240 10% 8%) 0%, hsl(240 10% 6%) 100%);
+}
+
+/* Strong typography */
+.text-casino-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.text-casino-subtitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.text-casino-mono {
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(240 10% 6%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(155 100% 50% / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(155 100% 50% / 0.5);
+}
+
+/* Custom scrollbar class */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsla(155, 100%, 50%, 0.3);
+  border-radius: 3px;
 }

@@ -117,42 +117,42 @@ export default function GamePage() {
 
   const getStatusColor = () => {
     if (phase === "BETTING") return "bg-blue-600";
-    if (phase === "RUNNING") return "bg-green-600 animate-pulse";
-    if (phase === "CRASHED") return "bg-red-600";
+    if (phase === "RUNNING") return "bg-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.6)]";
+    if (phase === "CRASHED") return "bg-[#ff0055] shadow-[0_0_15px_rgba(255,0,85,0.6)]";
     return "bg-gray-600";
   };
 
   if (authLoading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4 flex items-center justify-center">
+      <main className="min-h-screen bg-[#0a0a1a] text-white p-4 flex items-center justify-center">
         <div className="space-y-4">
-          <Skeleton className="h-12 w-48" />
-          <Skeleton className="h-64 w-full max-w-3xl" />
-          <Skeleton className="h-32 w-full max-w-3xl" />
+          <Skeleton className="h-12 w-48 bg-[#1a1a2a]" />
+          <Skeleton className="h-64 w-full max-w-3xl bg-[#1a1a2a]" />
+          <Skeleton className="h-32 w-full max-w-3xl bg-[#1a1a2a]" />
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4">
+    <main className="min-h-screen bg-[#0a0a1a] text-white p-4">
       <div className="max-w-7xl mx-auto">
         <PlayerHeader />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Game Area */}
           <div className="lg:col-span-2 space-y-4">
-            <Card>
+            <Card className="border-[#00ff88]/20 bg-[#0f0f23] shadow-[0_0_30px_rgba(0,255,136,0.1)]">
               <CardContent className="pt-6">
                 {phase === "BETTING" && !userBet ? (
                   <div className="h-64 flex items-center justify-center">
-                    <Skeleton className="h-32 w-32 rounded-full" />
+                    <Skeleton className="h-32 w-32 rounded-full bg-[#1a1a2a]" />
                   </div>
                 ) : (
                   <CrashGraph />
                 )}
                 <div className="mt-4 text-center">
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm ${getStatusColor()}`}>
+                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${getStatusColor()}`}>
                     {getStatusLabel()}
                   </span>
                 </div>
@@ -160,16 +160,16 @@ export default function GamePage() {
             </Card>
 
             {/* Players' Bets - Social Proof */}
-            <Card>
+            <Card className="border-[#ffffff]/5 bg-[#0f0f23]">
               <CardHeader>
-                <CardTitle className="text-lg">Apostas da Rodada</CardTitle>
+                <CardTitle className="text-lg text-[#00ff88] font-bold">Apostas da Rodada</CardTitle>
               </CardHeader>
               <CardContent>
                 {bets.length === 0 ? (
                   <div className="space-y-2">
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
+                    <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
+                    <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
                   </div>
                 ) : (
                   <BetsList bets={bets} />
@@ -180,17 +180,17 @@ export default function GamePage() {
 
           {/* Bet Controls */}
           <div className="space-y-4">
-            <Card>
+            <Card className="border-[#00ff88]/20 bg-[#0f0f23] shadow-[0_0_20px_rgba(0,255,136,0.05)]">
               <CardHeader>
-                <CardTitle>Fazer Aposta</CardTitle>
+                <CardTitle className="text-[#00ff88] font-bold uppercase tracking-wider text-lg">Fazer Aposta</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">
+                  <label className="block text-sm text-gray-400 mb-2 font-medium">
                     Valor da Aposta (R$)
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00ff88] text-sm font-bold">
                       R$
                     </span>
                     <Input
@@ -200,18 +200,18 @@ export default function GamePage() {
                       min="1.00"
                       max="1000.00"
                       step="0.01"
-                      className="bg-gray-800 border-gray-700 pl-8 text-white"
+                      className="bg-[#1a1a2a] border-[#00ff88]/30 pl-8 text-white placeholder:text-gray-600 focus:border-[#00ff88]/50 focus:shadow-[0_0_10px_rgba(0,255,136,0.3)] transition-all duration-300"
                       disabled={!canBet}
                     />
                   </div>
                   {betAmountCents > balance && (
-                    <p className="text-xs text-red-400 mt-1">
-                      Saldo insuficiente ({formatCurrency(balance)})
+                    <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
+                      <span>⚠</span> Saldo insuficiente ({formatCurrency(balance)})
                     </p>
                   )}
                   {betAmountCents > 100000 && (
-                    <p className="text-xs text-red-400 mt-1">
-                      Valor máximo: R$ 1.000,00
+                    <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
+                      <span>⚠</span> Valor máximo: R$ 1.000,00
                     </p>
                   )}
                   <div className="grid grid-cols-4 gap-2 mt-2">
@@ -227,7 +227,7 @@ export default function GamePage() {
                         size="sm"
                         onClick={() => setBetAmount(opt.value)}
                         disabled={!canBet}
-                        className="text-xs border-gray-700 hover:bg-gray-700 text-gray-300"
+                        className="text-xs border-[#00ff88]/30 hover:bg-[#00ff88]/10 text-[#00ff88] hover:border-[#00ff88]/50 transition-all duration-300"
                       >
                         {opt.label}
                       </Button>
@@ -237,9 +237,9 @@ export default function GamePage() {
 
                 {/* Potencial ganho */}
                 {(canBet || userBet?.status === "PENDING") && (
-                  <div className="text-center p-2 bg-gray-800/50 rounded-lg">
-                    <p className="text-xs text-gray-400">Ganho potencial</p>
-                    <p className="text-2xl font-bold text-green-400">
+                  <div className="text-center p-3 bg-[#1a1a2a] rounded-lg border border-[#00ff88]/10">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Ganho potencial</p>
+                    <p className="text-3xl font-black text-[#00ff88] tabular-nums" style={{ textShadow: "0 0 20px rgba(0,255,136,0.5)" }}>
                       {formatCurrency(potentialPayout * 100)}
                     </p>
                     <p className="text-xs text-gray-500">
@@ -248,62 +248,70 @@ export default function GamePage() {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Button
                     onClick={handlePlaceBet}
                     disabled={!canPlaceBet || isPlacingBet}
-                    className={`w-full font-bold text-lg ${
-                      canPlaceBet && !isPlacingBet
-                        ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/50"
-                        : "bg-gray-700 text-gray-400"
+                    variant="neon-green"
+                    size="lg"
+                    className={`w-full font-black text-lg uppercase tracking-wider ${
+                      canPlaceBet && !isPlacingBet ? "" : "opacity-50 cursor-not-allowed"
                     }`}
                   >
                     {isPlacingBet ? (
                       <span className="flex items-center gap-2">
-                        <Spinner className="h-4 w-4" />
-                        Apostando...
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        APOSTANDO...
                       </span>
                     ) : !canBet ? (
-                      "Aguarde..."
+                      "AGUARDE..."
                     ) : !isValidAmount ? (
-                      "Valor inválido"
+                      "VALOR INVÁLIDO"
                     ) : !hasSufficientBalance ? (
-                      "Saldo insuficiente"
+                      "SALDO INSUFICIENTE"
                     ) : (
-                      "Apostar"
+                      "APOSTAR"
                     )}
                   </Button>
 
                   <Button
                     onClick={handleCashOut}
                     disabled={!canCashOut || isCashingOut}
-                    className={`w-full font-bold text-lg ${
+                    variant="neon-red"
+                    size="lg"
+                    className={`w-full font-black text-lg uppercase tracking-wider ${
                       canCashOut && !isCashingOut
-                        ? "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/50 animate-pulse"
-                        : "bg-gray-700 text-gray-400"
+                        ? "animate-pulse"
+                        : "opacity-50 cursor-not-allowed"
                     }`}
                   >
                     {isCashingOut ? (
                       <span className="flex items-center gap-2">
-                        <Spinner className="h-4 w-4" />
-                        Cash Out...
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        CASH OUT...
                       </span>
                     ) : canCashOut ? (
-                      `Cash Out @ ${multiplier.toFixed(2)}x`
+                      `CASH OUT @ ${multiplier.toFixed(2)}x`
                     ) : userBet?.status === "CASHED_OUT" ? (
-                      `Cash Out @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
+                      `CASH OUT @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
                     ) : (
-                      "Cash Out"
+                      "CASH OUT"
                     )}
                   </Button>
                 </div>
 
-                <div className="pt-4 border-t border-gray-800">
-                  <p className="text-sm text-gray-400 mb-2">Minha Aposta</p>
+                <div className="pt-4 border-t border-[#ffffff]/10">
+                  <p className="text-sm text-gray-400 mb-2 font-medium">Minha Aposta</p>
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {userBet ? (
-                      <div className="flex justify-between text-sm">
-                        <span>{formatCurrency(userBet.amountCents)}</span>
+                      <div className="flex justify-between text-sm p-2 bg-[#1a1a2a] rounded">
+                        <span className="text-white font-medium">{formatCurrency(userBet.amountCents)}</span>
                         <span className={getBetStatusColor(userBet.status)}>
                           {getBetStatusLabel(userBet.status)}
                           {userBet.cashoutMultiplier &&
@@ -319,9 +327,9 @@ export default function GamePage() {
             </Card>
 
             {/* Crash History */}
-            <Card>
+            <Card className="border-[#ffffff]/5 bg-[#0f0f23]">
               <CardHeader>
-                <CardTitle className="text-lg">Histórico</CardTitle>
+                <CardTitle className="text-lg text-[#bf00ff] font-bold">Histórico</CardTitle>
               </CardHeader>
               <CardContent>
                 <RoundHistory />
@@ -341,32 +349,7 @@ function getBetStatusLabel(betStatus: string) {
 }
 
 function getBetStatusColor(betStatus: string) {
-  if (betStatus === "CASHED_OUT") return "text-green-400";
-  if (betStatus === "LOST") return "text-red-400";
+  if (betStatus === "CASHED_OUT") return "text-[#00ff88] font-bold";
+  if (betStatus === "LOST") return "text-[#ff0055] font-bold";
   return "text-yellow-400";
-}
-
-function Spinner({ className }: { className?: string }) {
-  return (
-    <svg
-      className={`animate-spin ${className}`}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
 }
