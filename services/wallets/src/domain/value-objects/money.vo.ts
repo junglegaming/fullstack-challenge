@@ -6,23 +6,15 @@ export class Money {
   private readonly cents: bigint;
 
   constructor(cents: bigint);
-  constructor(cents: number);
-  constructor(reais: number, scale: 'reais');
-  constructor(value: bigint | number, scale?: 'reais') {
+  constructor(reais: string, scale: 'reais');
+  constructor(value: bigint | string, scale?: 'reais') {
     let c: bigint;
     if (typeof value === 'bigint') {
       c = value;
     } else if (scale === 'reais') {
-      // Convert reais (float) to cents using string conversion to avoid floating-point errors
       c = Money.reaisToCents(value);
     } else {
-      // value is number representing cents (integer expected)
-      if (!Number.isInteger(value)) {
-        // If non-integer cents are passed, round to nearest cent
-        c = BigInt(Math.round(value));
-      } else {
-        c = BigInt(value);
-      }
+      c = BigInt(value);
     }
     if (c < 0n) throw new Error('Money amount cannot be negative');
     this.cents = c;
@@ -100,7 +92,7 @@ export class Money {
     return this.cents < other.cents;
   }
 
-  static fromReais(reais: number): Money {
+  static fromReais(reais: string): Money {
     return new Money(reais, 'reais');
   }
 
@@ -111,12 +103,8 @@ export class Money {
   /**
    * Converts a reais float to cents (bigint) using string conversion to avoid floating-point errors.
    */
-  private static reaisToCents(reais: number): bigint {
-    // Convert the number to a string with up to 2 decimal places
-    // Using Number.toFixed(2) can produce floating-point rounding artifacts,
-    // but we accept that for the fromReais factory as it's a convenience method.
-    // For critical paths, use string input or bigint.
-    const str = reais.toFixed(2);
+  private static reaisToCents(reais: string): bigint {
+    const str = reais;
     const { coeff, scale } = Money.parseDecimal(str);
     // coeff is in cents if scale <= 2, but parseDecimal may produce scale=2 (e.g., "10.50" -> coeff=1050, scale=2)
     // Actually parseDecimal("10.50") -> coeff=1050, scale=2. Then cents = coeff / 10^scale? Wait:

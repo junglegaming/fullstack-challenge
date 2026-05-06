@@ -19,8 +19,8 @@ export class WalletEventHandlerService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     const consumer = this.rabbitMQService.getConsumer();
 
-    // Subscribe to BetPlaced event → debit
-    consumer.subscribe('BetPlaced', async (payload, messageId) => {
+    // Subscribe to bet-placed event → debit
+    consumer.subscribe('bet-placed', async (payload, messageId) => {
       this.logger.info('Processing BetPlaced event', { payload, messageId });
       try {
         const { playerId, amountCents, betId } = payload as Record<string, unknown>;
@@ -42,8 +42,8 @@ export class WalletEventHandlerService implements OnApplicationBootstrap {
       }
     });
 
-    // Subscribe to CashoutRequested event → credit
-    consumer.subscribe('CashoutRequested', async (payload, messageId) => {
+    // Subscribe to cashout-requested event → credit
+    consumer.subscribe('cashout-requested', async (payload, messageId) => {
       this.logger.info('Processing CashoutRequested event', { payload, messageId });
       try {
         const { playerId, amountCents, betId } = payload as Record<string, unknown>;

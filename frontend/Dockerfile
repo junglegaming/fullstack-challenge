@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies
 WORKDIR /app
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN npm install -g bun && bun install
 
 # Copy source

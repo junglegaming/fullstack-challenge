@@ -1,5 +1,5 @@
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
-import { OutboxRepository } from '@/domain/repositories/outbox.repository';
+import type { OutboxRepository } from '@/domain/repositories/outbox.repository';
 
 export class OutboxRepositoryImpl implements OutboxRepository {
   private events: Map<string, OutboxEvent> = new Map();

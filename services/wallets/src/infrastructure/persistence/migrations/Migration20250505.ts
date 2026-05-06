@@ -3,9 +3,9 @@ import { Migration } from '@mikro-orm/migrations';
 export class Migration20250505 extends Migration {
 
   override async up(): Promise<void> {
-    // Create walets table
+    // Create wallets table
     this.addSql(`
-      CREATE TABLE IF NOT EXISTS walets (
+      CREATE TABLE IF NOT EXISTS wallets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         player_id VARCHAR(255) NOT NULL UNIQUE,
         balance_cents BIGINT NOT NULL DEFAULT 0,
@@ -13,14 +13,14 @@ export class Migration20250505 extends Migration {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
-    this.addSql(`CREATE INDEX IF NOT EXISTS idx_wallets_player_id ON walets(player_id);`);
+    this.addSql(`CREATE INDEX IF NOT EXISTS idx_wallets_player_id ON wallets(player_id);`);
 
     // Create transactions table
     this.addSql(`
       CREATE TABLE IF NOT EXISTS transactions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         wallet_id_str VARCHAR(255) NOT NULL,
-        wallet_id UUID REFERENCES walets(id) ON DELETE CASCADE,
+        wallet_id UUID REFERENCES wallets(id) ON DELETE CASCADE,
         type VARCHAR(20) NOT NULL,
         amount_cents BIGINT NOT NULL,
         balance_after_cents BIGINT NOT NULL,
@@ -68,6 +68,6 @@ export class Migration20250505 extends Migration {
     this.addSql('DROP TABLE IF EXISTS outbox_events;');
     this.addSql('DROP TABLE IF EXISTS inbox_events;');
     this.addSql('DROP TABLE IF EXISTS transactions;');
-    this.addSql('DROP TABLE IF EXISTS walets;');
+    this.addSql('DROP TABLE IF EXISTS wallets;');
   }
 }

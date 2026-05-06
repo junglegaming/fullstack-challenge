@@ -6,20 +6,15 @@ export class Money {
   private readonly cents: bigint;
 
   constructor(cents: bigint);
-  constructor(cents: number);
-  constructor(reais: number, scale: 'reais');
-  constructor(value: bigint | number, scale?: 'reais') {
+  constructor(reais: string, scale: 'reais');
+  constructor(value: bigint | string, scale?: 'reais') {
     let c: bigint;
     if (typeof value === 'bigint') {
       c = value;
     } else if (scale === 'reais') {
       c = Money.reaisToCents(value);
     } else {
-      if (!Number.isInteger(value)) {
-        c = BigInt(Math.round(value));
-      } else {
-        c = BigInt(value);
-      }
+      c = BigInt(value);
     }
     if (c < 0n) throw new Error('Money amount cannot be negative');
     this.cents = c;
@@ -81,7 +76,7 @@ export class Money {
     return this.cents < other.cents;
   }
 
-  static fromReais(reais: number): Money {
+  static fromReais(reais: string): Money {
     return new Money(reais, 'reais');
   }
 
@@ -89,8 +84,8 @@ export class Money {
     return new Money(0n);
   }
 
-  private static reaisToCents(reais: number): bigint {
-    const str = reais.toFixed(2);
+  private static reaisToCents(reais: string): bigint {
+    const str = reais;
     const { coeff, scale } = Money.parseDecimal(str);
     const divisor = 10n ** BigInt(scale);
     const cents = (coeff * 100n) / divisor;

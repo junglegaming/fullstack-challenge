@@ -2,6 +2,10 @@ import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import mikroOrmConfig from "./infrastructure/persistence/mikro-orm.config";
+import { WalletEntity } from "./infrastructure/persistence/entities/orm/wallet.entity";
+import { TransactionEntity } from "./infrastructure/persistence/entities/orm/transaction.entity";
+import { InboxEventEntity } from "./infrastructure/persistence/entities/orm/inbox-event.orm-entity";
+import { OutboxEventEntity } from "./infrastructure/persistence/entities/orm/outbox-event.orm-entity";
 import { WalletsController } from "./presentation/controllers/wallets.controller";
 import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
 import { JwtStrategy } from "./infrastructure/auth/jwt.strategy";
@@ -20,14 +24,7 @@ import { MikroOrmOutboxRepository } from "./infrastructure/persistence/repositor
   imports: [
     PassportModule.register({ defaultStrategy: "jwt" }),
     MikroOrmModule.forRoot(mikroOrmConfig),
-    MikroOrmModule.forFeature({
-      entities: [
-        "./infrastructure/persistence/entities/orm/wallet.entity",
-        "./infrastructure/persistence/entities/orm/transaction.entity",
-        "./infrastructure/persistence/entities/orm/inbox-event.orm-entity",
-        "./infrastructure/persistence/entities/orm/outbox-event.orm-entity",
-      ],
-    }),
+    MikroOrmModule.forFeature([WalletEntity, TransactionEntity, InboxEventEntity, OutboxEventEntity]),
   ],
   controllers: [WalletsController],
   providers: [

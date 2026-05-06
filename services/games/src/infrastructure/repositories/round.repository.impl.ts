@@ -2,7 +2,7 @@ import { EntityManager, MikroORM } from '@mikro-orm/core';
 import { Injectable } from '@nestjs/common';
 import { Round } from '@/domain/entities/round.entity';
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { RoundEntity } from '../persistence/entities/orm/round.entity';
 import { BetEntity } from '../persistence/entities/orm/bet.entity';
 import { OutboxEventEntity } from '../persistence/entities/orm/outbox-event.entity';
@@ -25,7 +25,7 @@ export class RoundRepositoryImpl implements RoundRepository {
     const em = this.orm.em.fork();
     const roundEntity = await em.findOne(
       RoundEntity,
-      {},
+      { status: { $in: ['BETTING', 'RUNNING'] } },
       { orderBy: { createdAt: 'DESC' } },
     );
 
@@ -59,7 +59,7 @@ export class RoundRepositoryImpl implements RoundRepository {
           roundEntity.nonce = currentSeed.nonce;
           roundEntity.clientSeed = currentSeed.clientSeed;
         }
-        if (currentSeed.isRevealed && !roundEntity.serverSeedRevealed) {
+        if (!currentSeed.isRevealed && !roundEntity.serverSeedRevealed) {
           roundEntity.serverSeedRevealed = currentSeed.reveal();
         }
       }
@@ -83,7 +83,7 @@ export class RoundRepositoryImpl implements RoundRepository {
 
       for (const event of events) {
         const outboxEntity = new OutboxEventEntity();
-        outboxEntity.id = event.eventId.raw();
+        outboxEntity.id = event.eventId.raw;
         outboxEntity.aggregateType = event.aggregateType;
         outboxEntity.aggregateId = event.aggregateId;
         outboxEntity.eventType = event.eventType;
@@ -135,9 +135,12 @@ export class RoundRepositoryImpl implements RoundRepository {
       roundEntity.serverSeedRevealed,
     );
 
+    const crashPoint = new Multiplier(roundEntity.crashPoint);
+
     const round = new Round(
       new RoundId(roundEntity.id),
       roundEntity.status as any,
+      crashPoint,
       seed,
     );
 

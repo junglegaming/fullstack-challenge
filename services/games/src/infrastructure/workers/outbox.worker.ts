@@ -1,6 +1,7 @@
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import { Inject } from '@nestjs/common';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
-import { IEventBus } from '@/application/ports/event-bus.port';
+import type { IEventBus } from '@/application/ports/event-bus.port';
 
 const POLLING_INTERVAL_MS = 5000;
 const MAX_RETRY_ATTEMPTS = 5;
@@ -11,8 +12,8 @@ export class OutboxWorker {
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   constructor(
-    private readonly roundRepo: RoundRepository,
-    private readonly eventBus: IEventBus,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
+    @Inject('IEventBus') private readonly eventBus: IEventBus,
   ) {}
 
   start(): void {
@@ -51,13 +52,13 @@ export class OutboxWorker {
         payload: event.eventPayload,
       });
 
-      await this.roundRepo.markOutboxEventAsPublished(event.eventId.raw());
+      await this.roundRepo.markOutboxEventAsPublished(event.eventId.raw);
     } catch (error) {
-      console.error(`Failed to publish event ${event.eventId.raw()}:`, error);
-      await this.roundRepo.incrementOutboxEventFailedAttempts(event.eventId.raw());
+      console.error(`Failed to publish event ${event.eventId.raw}:`, error);
+      await this.roundRepo.incrementOutboxEventFailedAttempts(event.eventId.raw);
 
       if (event.failedAttemptsCount >= MAX_RETRY_ATTEMPTS) {
-        console.error(`Event ${event.eventId.raw()} exceeded max retry attempts`);
+        console.error(`Event ${event.eventId.raw} exceeded max retry attempts`);
       }
     }
   }

@@ -1,13 +1,15 @@
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
 import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { CrashRoundCommand } from '../commands/crash-round.command';
 import { RoundResponseDto } from '../dtos/round.response.dto';
+import { Injectable, Inject } from '@nestjs/common';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
 
+@Injectable()
 export class CrashRoundUseCase {
   constructor(
-    private readonly roundRepo: RoundRepository,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
   ) {}
 
   async execute(_cmd: CrashRoundCommand): Promise<RoundResponseDto> {
@@ -23,7 +25,7 @@ export class CrashRoundUseCase {
       new OutboxEventId(`round-crashed-${round.roundId.raw}`),
       'Round',
       round.roundId.raw,
-      'round_crashed',
+      'round-crashed',
       {
         roundId: round.roundId.raw,
         status: round.roundStatus,

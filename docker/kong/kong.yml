@@ -1,4 +1,4 @@
-_format_version: "3.0"
+﻿_format_version: "3.0"
 
 # ===========================================================================
 # Plugins Globais
@@ -40,7 +40,6 @@ plugins:
 services:
   - name: games-service
     url: http://games:4001
-    # Rate limiting específico para este serviço
     plugins:
       - name: rate-limiting
         config:
@@ -49,7 +48,14 @@ services:
           policy: local
           fault_tolerant: true
     routes:
-      # Rotas Públicas (sem autenticação JWT)
+      # Health check público
+      - name: games-health-route
+        paths:
+          - /games/health
+        strip_path: false
+        methods:
+          - GET
+
       - name: games-public-routes
         paths:
           - /games/rounds
@@ -67,7 +73,7 @@ services:
           - GET
           - POST
         plugins:
-          - name: jwt
+         -  name: jwt
             config:
               key_claim_name: sub
               claims_to_verify:
@@ -120,12 +126,18 @@ services:
 #
 # Exemplo de configuração (preencher com a chave pública real):
 #
-# consumers:
-#   - username: keycloak-crash-game-client
-#     jwt:
-#       - key: crash-game-client
-#         algorithm: RS256
-#         rsa_public_key: |
-#           -----BEGIN PUBLIC KEY-----
-#           (chave pública do Keycloak em formato PEM)
-#           -----END PUBLIC KEY-----
+consumers:
+  - username: keycloak-crash-game-client
+    jwt_secrets:
+      - key: crash-game-client
+        algorithm: RS256
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3DCajtbRuthgC2yt9BFR
+          YFQGWu971L+Eu+aV+KAG2ZbhnJ9xG4KvyVamncnAECajQxCS4cT4269GA9oXGrSq
+          yRIkCUEDsnwWhGHVgQHPT63XiYsZnrCDNQqC3dxaFS1murysrPRe3ab2FEfbBe69
+          jTLFHuIjAw8rQ0GaMr6QM6YiJXeooc0+O7WrQQZZZ65gl4Zdb/fAMkuWMbZueSmC
+          aQ/qHcXB38dIWiRBQKr1kFFvbXDQCaJIUy2Qo9M+FZtlIPd5EqqUqf3T9GCdp+tJ
+          LtlvhNy6xv+9U+54EyiCurpa5M5b1WFcM4tiU/5Q3KPjJRjTXQE/JUPeJVQ8oecb
+          rwIDAQAB
+          -----END PUBLIC KEY-----

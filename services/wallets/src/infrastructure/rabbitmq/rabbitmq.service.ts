@@ -21,13 +21,21 @@ export class RabbitMQService implements OnModuleDestroy {
 
   async startConsumer(): Promise<void> {
     if (this.started) return;
-    try {
-      await this.consumer.start();
-      this.started = true;
-      this.logger.info('RabbitMQ consumer started');
-    } catch (error) {
-      this.logger.error('Failed to start RabbitMQ consumer', undefined, error as Error);
-      throw error;
+    const maxRetries = 5;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await this.consumer.start();
+        this.started = true;
+        this.logger.info('RabbitMQ consumer started');
+        return;
+      } catch (error) {
+        this.logger.error(`Failed to start RabbitMQ consumer (attempt ${attempt}/${maxRetries})`, undefined, error as Error);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        } else {
+          throw error;
+        }
+      }
     }
   }
 

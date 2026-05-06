@@ -1,4 +1,4 @@
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
 import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { PlaceBetCommand } from '../commands/place-bet.command';
@@ -6,13 +6,15 @@ import { BetResponseDto } from '../dtos/bet.response.dto';
 import { BetId } from '@/domain/value-objects/bet-id.vo';
 import { Bet } from '@/domain/entities/bet.entity';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
-import { IWebSocketEmitter } from '../ports/websocket-emitter.port';
+import { Injectable, Inject } from '@nestjs/common';
+import type { IWebSocketEmitter } from '../ports/websocket-emitter.port';
 import { BetPlacedDto } from '../../presentation/dtos/bet-placed.dto';
 
+@Injectable()
 export class PlaceBetUseCase {
   constructor(
-    private readonly roundRepo: RoundRepository,
-    private readonly webSocketEmitter: IWebSocketEmitter,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
+    @Inject('IWebSocketEmitter') private readonly webSocketEmitter: IWebSocketEmitter,
   ) {}
 
   async execute(cmd: PlaceBetCommand): Promise<BetResponseDto> {
@@ -32,12 +34,12 @@ export class PlaceBetUseCase {
       new OutboxEventId(bet.betId.raw),
       'Bet',
       bet.betId.raw,
-      'bet_placed',
+      'bet-placed',
       {
         betId: bet.betId.raw,
         playerId: cmd.playerId.raw,
         roundId: round.roundId.raw,
-        amountCents: Number(cmd.amount.amount),
+        amountCents: cmd.amount.amount.toString(),
         idempotencyKey: bet.betId.raw,
       },
     );

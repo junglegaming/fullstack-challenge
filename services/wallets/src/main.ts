@@ -2,9 +2,17 @@ import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { MikroORM } from "@mikro-orm/core";
+import { mikroOrmConfig } from "./infrastructure/persistence/mikro-orm.config";
 import { AppModule } from "./app.module";
 
 async function bootstrap(): Promise<void> {
+  const orm = await MikroORM.init(mikroOrmConfig);
+
+  const generator = orm.getSchemaGenerator();
+  await generator.updateSchema();
+  console.log("Database schema updated successfully");
+
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(
@@ -40,5 +48,4 @@ async function bootstrap(): Promise<void> {
   console.log(`Wallets service running on port ${port}`);
   console.log(`Swagger UI available at http://localhost:${port}/api`);
 }
-
 bootstrap();

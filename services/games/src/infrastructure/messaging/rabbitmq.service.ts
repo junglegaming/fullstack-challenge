@@ -1,4 +1,4 @@
-import { IEventBus } from '@/application/ports/event-bus.port';
+import type { IEventBus } from '@/application/ports/event-bus.port';
 
 const amqp = require('amqplib');
 
@@ -14,16 +14,23 @@ export class RabbitMQService implements IEventBus {
     this.url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
   }
 
-  async connect(): Promise<void> {
+  async connect(retries = 5, delayMs = 5000): Promise<void> {
     if (this.connection) return;
-    try {
-      this.connection = await amqp.connect(this.url);
-      this.channel = await this.connection.createChannel();
-      await this.channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
-      console.log('[RabbitMQ] Connected and exchange asserted');
-    } catch (error) {
-      console.error('[RabbitMQ] Failed to connect:', error);
-      throw error;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        this.connection = await amqp.connect(this.url);
+        this.channel = await this.connection.createChannel();
+        await this.channel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, { durable: true });
+        console.log('[RabbitMQ] Connected and exchange asserted');
+        return;
+      } catch (error) {
+        console.error(`[RabbitMQ] Failed to connect (attempt ${attempt}/${retries}):`, error);
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        } else {
+          throw error;
+        }
+      }
     }
   }
 

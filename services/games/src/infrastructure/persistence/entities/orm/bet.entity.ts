@@ -1,13 +1,12 @@
 import { Entity, PrimaryKey, Property, ManyToOne, Index } from '@mikro-orm/core';
-import { RoundEntity } from './round.entity';
 
 @Entity({ tableName: 'bets' })
 export class BetEntity {
   @PrimaryKey({ type: 'uuid' })
   id!: string;
 
-  @ManyToOne(() => RoundEntity)
-  round!: RoundEntity;
+  @ManyToOne(() => 'RoundEntity')
+  round!: any;
 
   @Property({ length: 255 })
   @Index()

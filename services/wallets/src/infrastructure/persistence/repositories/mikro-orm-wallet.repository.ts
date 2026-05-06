@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { EntityManager } from '@mikro-orm/core';
+import { EntityManager, LockMode } from '@mikro-orm/core';
 import { Wallet } from '../../../domain/entities/wallet.entity';
 import { WalletId } from '../../../domain/value-objects/wallet-id.vo';
 import { PlayerId } from '../../../domain/value-objects/player-id.vo';
@@ -27,7 +27,11 @@ export class MikroOrmWalletRepository implements IWalletRepository {
 
   async save(wallet: Wallet): Promise<void> {
     await this.em.transactional(async (em) => {
-      let walletEntity = await em.findOne(WalletEntity, { id: wallet.walletId.raw });
+      let walletEntity = await em.findOne(
+        WalletEntity,
+        { id: wallet.walletId.raw },
+        { lockMode: LockMode.PESSIMISTIC_WRITE },
+      );
       if (!walletEntity) {
         walletEntity = new WalletEntity();
         walletEntity.id = wallet.walletId.raw;

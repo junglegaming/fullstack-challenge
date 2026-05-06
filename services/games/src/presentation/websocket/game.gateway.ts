@@ -5,7 +5,7 @@ import { MultiplierUpdateDto } from '../dtos/multiplier-update.dto';
 import { RoundCrashedDto } from '../dtos/round-crashed.dto';
 import { BetPlacedDto } from '../dtos/bet-placed.dto';
 import { BetCashedOutDto } from '../dtos/bet-cashed-out.dto';
-import { IWebSocketEmitter } from '@/application/ports/websocket-emitter.port';
+import type { IWebSocketEmitter } from '@/application/ports/websocket-emitter.port';
 
 @WebSocketGateway({
   cors: true,

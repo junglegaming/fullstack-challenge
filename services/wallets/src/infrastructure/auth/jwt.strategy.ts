@@ -8,7 +8,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || "secret",
+      secretOrKey: process.env.JWT_SECRET || (() => { throw new Error('JWT_SECRET not configured'); }) as any,
       issuer: process.env.JWT_ISSUER || "http://localhost:8080/realms/crash-game",
       audience: process.env.JWT_AUDIENCE || "account",
     });

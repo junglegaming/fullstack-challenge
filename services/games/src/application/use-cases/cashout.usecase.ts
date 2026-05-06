@@ -1,16 +1,18 @@
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
 import { OutboxEventId } from '@/domain/value-objects/outbox-event-id.vo';
 import { CashoutCommand } from '../commands/cashout.command';
 import { BetResponseDto } from '../dtos/bet.response.dto';
 import { InvalidStateTransitionError } from '@/domain/errors/invalid-state-transition.error';
-import { IWebSocketEmitter } from '../ports/websocket-emitter.port';
+import { Injectable, Inject } from '@nestjs/common';
+import type { IWebSocketEmitter } from '../ports/websocket-emitter.port';
 import { BetCashedOutDto } from '../../presentation/dtos/bet-cashed-out.dto';
 
+@Injectable()
 export class CashoutUseCase {
   constructor(
-    private readonly roundRepo: RoundRepository,
-    private readonly webSocketEmitter: IWebSocketEmitter,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
+    @Inject('IWebSocketEmitter') private readonly webSocketEmitter: IWebSocketEmitter,
   ) {}
 
   async execute(cmd: CashoutCommand): Promise<BetResponseDto> {
@@ -26,12 +28,12 @@ export class CashoutUseCase {
       new OutboxEventId(`cashout-${bet.betId.raw}`),
       'Bet',
       bet.betId.raw,
-      'cashout_requested',
+      'cashout-requested',
       {
         betId: bet.betId.raw,
         playerId: cmd.playerId.raw,
         roundId: round.roundId.raw,
-        amountCents: Number(bet.payout.amount),
+        amountCents: bet.payout.amount.toString(),
         multiplier: bet.cashoutMultiplierValue?.raw ?? 0,
         idempotencyKey: `cashout-${bet.betId.raw}`,
       },

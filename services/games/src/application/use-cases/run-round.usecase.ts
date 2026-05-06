@@ -1,4 +1,4 @@
-import { RoundRepository } from "@/infrastructure/repositories/round.repository";
+import type { RoundRepository } from "@/infrastructure/repositories/round.repository";
 import { GameGateway } from "@/presentation/websocket/game.gateway";
 
 export class RunRoundUseCase {

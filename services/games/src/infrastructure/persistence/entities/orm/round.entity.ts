@@ -16,19 +16,19 @@ export class RoundEntity {
   @Property({ type: 'numeric', precision: 10, scale: 4 })
   crashPoint!: string;
 
-  @Property({ length: 64 })
-  hashedSeed!: string;
+  @Property({ length: 64, nullable: true })
+  hashedSeed!: string | null;
 
-  @Property({ length: 64 })
-  nonce!: string;
+  @Property({ length: 64, nullable: true })
+  nonce!: string | null;
 
-  @Property({ length: 64 })
-  clientSeed!: string;
+  @Property({ length: 64, nullable: true })
+  clientSeed!: string | null;
 
   @Property({ nullable: true })
   serverSeedRevealed!: string | null;
 
-  @OneToMany(() => BetEntity, 'round', { orphanRemoval: false })
+  @OneToMany('BetEntity', 'round', { orphanRemoval: false })
   bets = new Collection<BetEntity>(this);
 
   @Property()

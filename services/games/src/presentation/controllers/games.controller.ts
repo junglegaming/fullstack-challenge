@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req, Query, Param } from "@nestjs/common";
+import { Controller, Get, Post, Body, UseGuards, Req, Query, Param, Inject } from "@nestjs/common";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { GetUser } from "../decorators/get-user.decorator";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
@@ -6,7 +6,7 @@ import { PlaceBetUseCase } from "@/application/use-cases/place-bet.usecase";
 import { CashoutUseCase } from "@/application/use-cases/cashout.usecase";
 import { PlayerId } from "@/domain/value-objects/player-id.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { RoundRepository } from "@/domain/repositories/round.repository";
+import type { RoundRepository } from "@/domain/repositories/round.repository";
 import { RoundResponseDto } from "@/application/dtos/round.response.dto";
 import { BetResponseDto } from "@/application/dtos/bet.response.dto";
 import { RoundStatus } from "@/domain/enums/round-status.enum";
@@ -17,7 +17,7 @@ export class GamesController {
   constructor(
     private readonly placeBetUseCase: PlaceBetUseCase,
     private readonly cashoutUseCase: CashoutUseCase,
-    private readonly roundRepo: RoundRepository,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
   ) {}
 
   @Get("health")

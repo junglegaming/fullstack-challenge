@@ -1,8 +1,10 @@
-import { RoundRepository } from '@/domain/repositories/round.repository';
+import { Inject } from '@nestjs/common';
+import type { RoundRepository } from '@/domain/repositories/round.repository';
 import { Round } from '@/domain/entities/round.entity';
 import { RoundId } from '@/domain/value-objects/round-id.vo';
 import { Multiplier } from '@/domain/value-objects/multiplier.vo';
 import { getMultiplierAt } from '@/domain/services/multiplier-growth.service';
+import { CreateRoundUseCase } from '@/application/use-cases/create-round.usecase';
 import { StartRoundUseCase } from '@/application/use-cases/start-round.usecase';
 import { CrashRoundUseCase } from '@/application/use-cases/crash-round.usecase';
 import { FinishRoundUseCase } from '@/application/use-cases/finish-round.usecase';
@@ -26,7 +28,8 @@ export class GameLoopService {
   private gameStartTime: number = 0;
 
   constructor(
-    private readonly roundRepo: RoundRepository,
+    @Inject('RoundRepository') private readonly roundRepo: RoundRepository,
+    private readonly createRoundUseCase: CreateRoundUseCase,
     private readonly startRoundUseCase: StartRoundUseCase,
     private readonly crashRoundUseCase: CrashRoundUseCase,
     private readonly finishRoundUseCase: FinishRoundUseCase,
@@ -55,6 +58,18 @@ export class GameLoopService {
     if (!this.isRunning) return;
 
     try {
+      // Create a new round if none exists
+      let currentRound: Round | null = null;
+      try {
+        currentRound = await this.roundRepo.getCurrent();
+      } catch (e) {
+        // No active round found, will create a new one
+      }
+
+      if (!currentRound || currentRound.roundStatus !== 'BETTING') {
+        await this.createRoundUseCase.execute();
+      }
+
       const result = await this.startRoundUseCase.execute(new StartRoundCommand());
 
       const startedDto = new RoundStartedDto(

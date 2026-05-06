@@ -2,10 +2,15 @@ import { Module, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import { MikroOrmModule } from "@mikro-orm/nestjs";
 import { PassportModule } from "@nestjs/passport";
 import mikroOrmConfig from "./infrastructure/persistence/mikro-orm.config";
+import { RoundEntity } from "./infrastructure/persistence/entities/orm/round.entity";
+import { BetEntity } from "./infrastructure/persistence/entities/orm/bet.entity";
+import { OutboxEventEntity } from "./infrastructure/persistence/entities/orm/outbox-event.entity";
 import { GamesController } from "./presentation/controllers/games.controller";
 import { GameGateway } from "./presentation/websocket/game.gateway";
+import { CrashService } from "./domain/services/crash.service";
 import { PlaceBetUseCase } from "./application/use-cases/place-bet.usecase";
 import { CashoutUseCase } from "./application/use-cases/cashout.usecase";
+import { CreateRoundUseCase } from "./application/use-cases/create-round.usecase";
 import { StartRoundUseCase } from "./application/use-cases/start-round.usecase";
 import { CrashRoundUseCase } from "./application/use-cases/crash-round.usecase";
 import { FinishRoundUseCase } from "./application/use-cases/finish-round.usecase";
@@ -13,8 +18,8 @@ import { RoundRepositoryImpl } from "./infrastructure/repositories/round.reposit
 import { OutboxWorker } from "./infrastructure/workers/outbox.worker";
 import { GameLoopService } from "./infrastructure/services/game-loop.service";
 import { RabbitMQService } from "./infrastructure/messaging/rabbitmq.service";
-import { IEventBus } from "./application/ports/event-bus.port";
-import { IWebSocketEmitter } from "./application/ports/websocket-emitter.port";
+import type { IEventBus } from "./application/ports/event-bus.port";
+import type { IWebSocketEmitter } from "./application/ports/websocket-emitter.port";
 import { JwtStrategy } from "./infrastructure/auth/jwt.strategy";
 import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
 
@@ -22,21 +27,17 @@ import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
   imports: [
     PassportModule.register({ defaultStrategy: "jwt" }),
     MikroOrmModule.forRoot(mikroOrmConfig),
-    MikroOrmModule.forFeature({
-      entities: [
-        "./infrastructure/persistence/entities/orm/round.entity",
-        "./infrastructure/persistence/entities/orm/bet.entity",
-        "./infrastructure/persistence/entities/orm/outbox-event.entity",
-      ],
-    }),
+    MikroOrmModule.forFeature([RoundEntity, BetEntity, OutboxEventEntity]),
   ],
   controllers: [GamesController],
   providers: [
     JwtStrategy,
     JwtAuthGuard,
     GameGateway,
+    CrashService,
     PlaceBetUseCase,
     CashoutUseCase,
+    CreateRoundUseCase,
     StartRoundUseCase,
     CrashRoundUseCase,
     FinishRoundUseCase,
@@ -46,11 +47,11 @@ import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
       useClass: RoundRepositoryImpl,
     },
     {
-      provide: IEventBus,
+      provide: 'IEventBus',
       useClass: RabbitMQService,
     },
     {
-      provide: IWebSocketEmitter,
+      provide: 'IWebSocketEmitter',
       useExisting: GameGateway,
     },
     OutboxWorker,
