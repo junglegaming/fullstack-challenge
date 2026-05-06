@@ -2,22 +2,20 @@
 
 import { useEffect } from "react";
 import { useGameStore } from "@/stores/game-store";
-import { getUsernameFromToken } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWallet } from "@/services/wallet";
 
 export function PlayerHeader() {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("kc_token") : null;
-  const username = getUsernameFromToken(token);
+  const { isAuthenticated, username } = useAuth();
   const balance = useGameStore((s) => s.balance);
   const setBalance = useGameStore((s) => s.setBalance);
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: ["wallet"],
     queryFn: fetchWallet,
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
   useEffect(() => {

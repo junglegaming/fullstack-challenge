@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useGameStore } from "@/stores/game-store";
 import { useRouter } from "next/navigation";
+import { useGameStore } from "@/stores/game-store";
 import { useGameSocket } from "@/services/websocket";
 import { CrashGraph } from "@/components/crash-graph";
 import { BetsList } from "@/components/bets-list";
@@ -12,12 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function GamePage() {
   const router = useRouter();
   const [betAmount, setBetAmount] = useState("10.00");
-  const [token, setToken] = useState<string | null>(null);
+  const { isAuthenticated, isLoading, token, getToken } = useAuth();
 
   const {
     multiplier,
@@ -25,26 +25,27 @@ export default function GamePage() {
     balance,
     bets,
     userBet,
-    setBalance,
   } = useGameStore();
 
   const { connect, disconnect } = useGameSocket();
 
   useEffect(() => {
-    const t = localStorage.getItem("kc_token");
-    if (!t) {
+    if (!isLoading && !isAuthenticated) {
       router.push("/");
       return;
     }
-    setToken(t);
-    api.setToken(t);
+  }, [isLoading, isAuthenticated, router]);
 
-    connect();
-
+  useEffect(() => {
+    const t = getToken();
+    if (t) {
+      api.setToken(t);
+      connect();
+    }
     return () => {
       disconnect();
     };
-  }, [router, connect, disconnect]);
+  }, [getToken, connect, disconnect]);
 
   const handlePlaceBet = async () => {
     const amountCents = Math.round(parseFloat(betAmount) * 100);
@@ -102,6 +103,14 @@ export default function GamePage() {
     if (betStatus === "LOST") return "text-red-400";
     return "text-yellow-400";
   };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4 flex items-center justify-center">
+        <p className="text-gray-400">Carregando...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4">
@@ -161,7 +170,7 @@ export default function GamePage() {
                   </div>
                   {betAmountCents > balance && (
                     <p className="text-xs text-red-400 mt-1">
-                      Saldo insuficiente (R$ {(balance / 100).toFixed(2)})
+                      Saldo insuficiente ({formatCurrency(balance)})
                     </p>
                   )}
                   {betAmountCents > 100000 && (
@@ -195,7 +204,7 @@ export default function GamePage() {
                   <div className="text-center p-2 bg-gray-800/50 rounded-lg">
                     <p className="text-xs text-gray-400">Ganho potencial</p>
                     <p className="text-2xl font-bold text-green-400">
-                      R$ {potentialPayout.toFixed(2)}
+                      {formatCurrency(potentialPayout * 100)}
                     </p>
                     <p className="text-xs text-gray-500">
                       @ {multiplier.toFixed(2)}x
@@ -244,7 +253,7 @@ export default function GamePage() {
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {userBet ? (
                       <div className="flex justify-between text-sm">
-                        <span>R$ {(userBet.amountCents / 100).toFixed(2)}</span>
+                        <span>{formatCurrency(userBet.amountCents)}</span>
                         <span className={getBetStatusColor(userBet.status)}>
                           {getBetStatusLabel(userBet.status)}
                           {userBet.cashoutMultiplier &&
@@ -273,4 +282,11 @@ export default function GamePage() {
       </div>
     </main>
   );
+}
+
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
 }

@@ -1,13 +1,26 @@
 "use client";
 
-import { redirect } from "next/navigation";
-import KeycloakService from "@/services/keycloak";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
-  const isAuth = KeycloakService.isAuthenticated();
+  const { isAuthenticated, isLoading, login } = useAuth();
+  const router = useRouter();
 
-  if (isAuth) {
-    redirect("/game");
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push("/game");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <p className="text-muted-foreground">Carregando...</p>
+      </main>
+    );
   }
 
   return (
@@ -15,12 +28,12 @@ export default function HomePage() {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-green-400">Crash Game</h1>
         <p className="mt-4 text-muted-foreground">Jungle Gaming Platform</p>
-        <button
-          onClick={() => KeycloakService.login()}
-          className="mt-8 rounded-lg bg-green-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-green-700"
+        <Button
+          onClick={login}
+          className="mt-8 bg-green-600 hover:bg-green-700"
         >
           Entrar
-        </button>
+        </Button>
       </div>
     </main>
   );
