@@ -91,14 +91,13 @@ services:
         condition: service_healthy
 
   # ---------------------------------------------------------------------------
-  # Games Service
+  # Games Service (apenas acessível via Kong na rede interna)
   # ---------------------------------------------------------------------------
   games:
     build:
       context: ./services/games
       dockerfile: Dockerfile
-    ports:
-      - "4001:4001"
+    # ports: removido - serviço só acessível via Kong na rede Docker
     env_file:
       - ./services/games/.env
     depends_on:
@@ -114,14 +113,13 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Wallets Service
+  # Wallets Service (apenas acessível via Kong na rede interna)
   # ---------------------------------------------------------------------------
   wallets:
     build:
       context: ./services/wallets
       dockerfile: Dockerfile
-    ports:
-      - "4002:4002"
+    # ports: removido - serviço só acessível via Kong na rede Docker
     env_file:
       - ./services/wallets/.env
     depends_on:
@@ -144,13 +142,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3000:3000"
     depends_on:
-      - games
-      - wallets
+      - kong
     environment:
-      - NEXT_PUBLIC_GAMES_API=http://localhost:3000
-      - NEXT_PUBLIC_WS_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
       - NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
 
 volumes:

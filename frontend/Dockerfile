@@ -10,8 +10,8 @@ COPY . .
 
 # Build the Next.js app
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_GAMES_API=http://localhost:3000
-ENV NEXT_PUBLIC_WS_URL=http://localhost:3000
+ENV NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_WS_URL=ws://localhost:8000
 ENV NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
 RUN bun run build
 
