@@ -5,6 +5,7 @@ import { useGameStore } from "@/stores/game-store";
 import { useRouter } from "next/navigation";
 import { useGameSocket } from "@/services/websocket";
 import { CrashGraph } from "@/components/crash-graph";
+import { BetsList } from "@/components/bets-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -134,59 +135,7 @@ export default function GamePage() {
                 <CardTitle className="text-lg">Apostas da Rodada</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  <AnimatePresence>
-                    {bets.map((bet) => (
-                      <motion.div
-                        key={bet.betId}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className={`flex justify-between items-center p-3 rounded-lg ${
-                          bet.status === "CASHED_OUT"
-                            ? "bg-green-900/30 border border-green-700"
-                            : bet.status === "LOST"
-                            ? "bg-red-900/30 border border-red-700"
-                            : "bg-gray-800"
-                        }`}
-                      >
-                        <div>
-                          <p className="font-medium">
-                            {bet.playerId.slice(0, 8)}...
-                          </p>
-                          <p className="text-sm text-gray-400">
-                            R$ {(bet.amountCents / 100).toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          {bet.status === "CASHED_OUT" ? (
-                            <div>
-                              <p className="text-green-400 font-bold">
-                                {bet.cashoutMultiplier?.toFixed(2)}x
-                              </p>
-                              <p className="text-sm text-gray-400">
-                                Payout: R${" "}
-                                {(
-                                  (bet.cashoutMultiplier || 0) *
-                                  (bet.amountCents / 100)
-                                ).toFixed(2)}
-                              </p>
-                            </div>
-                          ) : bet.status === "LOST" ? (
-                            <span className="text-red-400">Perdeu</span>
-                          ) : (
-                            <span className="text-gray-400">Ativo</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                  {bets.length === 0 && (
-                    <p className="text-center text-gray-500 py-4">
-                      Nenhuma aposta nesta rodada
-                    </p>
-                  )}
-                </div>
+                <BetsList bets={bets} />
               </CardContent>
             </Card>
           </div>
