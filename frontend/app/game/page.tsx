@@ -1,142 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/stores/game-store";
 import { useRouter } from "next/navigation";
-import wsService, { useGameSocket } from "@/services/websocket";
+import { useGameSocket } from "@/services/websocket";
+import { CrashGraph } from "@/components/crash-graph";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-
-function MultiplierChart({
-  multiplier,
-  status,
-}: {
-  multiplier: number;
-  status: string;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    ctx.scale(dpr, dpr);
-
-    const w = rect.width;
-    const h = rect.height;
-
-    ctx.clearRect(0, 0, w, h);
-
-    // Background
-    ctx.fillStyle = "#0f0f23";
-    ctx.fillRect(0, 0, w, h);
-
-    // Grid
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < w; i += 40) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, h);
-      ctx.stroke();
-    }
-    for (let j = 0; j < h; j += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, j);
-      ctx.lineTo(w, j);
-      ctx.stroke();
-    }
-
-    // Curve
-    if (multiplier > 1.0) {
-      const points: { x: number; y: number }[] = [];
-
-      for (let t = 0; t <= 1.0; t += 0.01) {
-        const x = t * w;
-        const y =
-          h -
-          ((Math.exp(0.06 * t * 60) - 1) /
-            (Math.exp(0.06 * 60) - 1)) *
-            h *
-            0.8;
-        points.push({ x, y });
-      }
-
-      ctx.beginPath();
-      ctx.strokeStyle = status === "CRASHED" ? "#ef4444" : "#22c55e";
-      ctx.lineWidth = 3;
-      ctx.shadowColor =
-        status === "CRASHED" ? "#ef4444" : "#22c55e";
-      ctx.shadowBlur = 10;
-
-      for (let i = 0; i < points.length; i++) {
-        if (i === 0) ctx.moveTo(points[i].x, points[i].y);
-        else ctx.lineTo(points[i].x, points[i].y);
-      }
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Glow effect
-      ctx.beginPath();
-      ctx.strokeStyle =
-        status === "CRASHED"
-          ? "rgba(239, 68, 68, 0.3)"
-          : "rgba(34, 197, 94, 0.3)";
-      ctx.lineWidth = 12;
-      for (let i = 0; i < points.length; i++) {
-        if (i === 0) ctx.moveTo(points[i].x, points[i].y);
-        else ctx.lineTo(points[i].x, points[i].y);
-      }
-      ctx.stroke();
-    }
-  }, [multiplier, status]);
-
-  return (
-    <div className="relative">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-64 rounded-lg"
-        style={{ width: "100%", height: "256px" }}
-      />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <motion.div
-          key={multiplier}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.1 }}
-          className={`text-8xl font-bold ${
-            status === "CRASHED"
-              ? "text-red-500"
-              : status === "RUNNING"
-              ? "text-green-400"
-              : "text-white"
-          }`}
-        >
-          {multiplier.toFixed(2)}x
-        </motion.div>
-      </div>
-      {status === "CRASHED" && (
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold"
-        >
-          CRASHED
-        </motion.div>
-      )}
-    </div>
-  );
-}
 
 export default function GamePage() {
   const router = useRouter();
@@ -237,7 +110,7 @@ export default function GamePage() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardContent className="pt-6">
-                <MultiplierChart multiplier={multiplier} status={phase} />
+                <CrashGraph />
                 <div className="mt-4 text-center">
                   <span className={`inline-block px-4 py-2 rounded-full text-sm ${getStatusColor()}`}>
                     {getStatusLabel()}

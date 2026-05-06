@@ -1,6 +1,6 @@
 {
-  "/api/auth/callback/route": "/api/auth/callback",
   "/_not-found/page": "/_not-found",
-  "/page": "/",
-  "/game/page": "/game"
+  "/api/auth/callback/route": "/api/auth/callback",
+  "/game/page": "/game",
+  "/page": "/"
 }

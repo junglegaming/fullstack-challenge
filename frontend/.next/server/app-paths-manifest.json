@@ -1,6 +1,6 @@
 {
-  "/api/auth/callback/route": "app/api/auth/callback/route.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
-  "/game/page": "app/game/page.js"
+  "/api/auth/callback/route": "app/api/auth/callback/route.js",
+  "/game/page": "app/game/page.js",
+  "/page": "app/page.js"
 }
