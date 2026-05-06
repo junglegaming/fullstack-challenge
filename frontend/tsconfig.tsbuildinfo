@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/pages/game.tsx","./src/pages/login.tsx","./src/services/keycloak.ts","./src/services/websocket.ts"],"version":"5.8.3"}
