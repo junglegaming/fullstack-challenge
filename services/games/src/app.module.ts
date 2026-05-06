@@ -1,4 +1,7 @@
 import { Module, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { MikroOrmModule } from "@mikro-orm/nestjs";
+import { PassportModule } from "@nestjs/passport";
+import mikroOrmConfig from "./infrastructure/persistence/mikro-orm.config";
 import { GamesController } from "./presentation/controllers/games.controller";
 import { GameGateway } from "./presentation/websocket/game.gateway";
 import { PlaceBetUseCase } from "./application/use-cases/place-bet.usecase";
@@ -12,18 +15,34 @@ import { GameLoopService } from "./infrastructure/services/game-loop.service";
 import { RabbitMQService } from "./infrastructure/messaging/rabbitmq.service";
 import { IEventBus } from "./application/ports/event-bus.port";
 import { IWebSocketEmitter } from "./application/ports/websocket-emitter.port";
+import { JwtStrategy } from "./infrastructure/auth/jwt.strategy";
+import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
 
 @Module({
+  imports: [
+    PassportModule.register({ defaultStrategy: "jwt" }),
+    MikroOrmModule.forRoot(mikroOrmConfig),
+    MikroOrmModule.forFeature({
+      entities: [
+        "./infrastructure/persistence/entities/orm/round.entity",
+        "./infrastructure/persistence/entities/orm/bet.entity",
+        "./infrastructure/persistence/entities/orm/outbox-event.entity",
+      ],
+    }),
+  ],
   controllers: [GamesController],
   providers: [
+    JwtStrategy,
+    JwtAuthGuard,
     GameGateway,
     PlaceBetUseCase,
     CashoutUseCase,
     StartRoundUseCase,
     CrashRoundUseCase,
     FinishRoundUseCase,
+    RoundRepositoryImpl,
     {
-      provide: 'RoundRepository',
+      provide: "RoundRepository",
       useClass: RoundRepositoryImpl,
     },
     {
@@ -36,21 +55,25 @@ import { IWebSocketEmitter } from "./application/ports/websocket-emitter.port";
     },
     OutboxWorker,
     GameLoopService,
+    RabbitMQService,
   ],
 })
 export class AppModule implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly outboxWorker: OutboxWorker,
     private readonly gameLoopService: GameLoopService,
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
-  onModuleInit() {
+  async onModuleInit() {
+    await this.rabbitMQService.connect();
     this.outboxWorker.start();
     this.gameLoopService.startLoop();
   }
 
-  onModuleDestroy() {
+  async onModuleDestroy() {
     this.outboxWorker.stop();
     this.gameLoopService.stopLoop();
+    await this.rabbitMQService.close();
   }
 }
