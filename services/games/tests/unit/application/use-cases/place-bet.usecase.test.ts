@@ -7,9 +7,34 @@ import { PlayerId } from '@/domain/value-objects/player-id.vo';
 import { Money } from '@/domain/value-objects/money.vo';
 import { RoundStatus } from '@/domain/enums/round-status.enum';
 import { Multiplier } from '@/domain/value-objects/multiplier.vo';
-import { RoundRepositoryImpl } from '@/infrastructure/repositories/round.repository.impl';
+import { RoundRepository } from '@/domain/repositories/round.repository';
+import { OutboxEvent } from '@/domain/entities/outbox-event.entity';
 import { IWebSocketEmitter } from '@/application/ports/websocket-emitter.port';
 import { BetPlacedDto } from '@/presentation/dtos/bet-placed.dto';
+
+class MockRoundRepository implements RoundRepository {
+  private currentRound: Round | null = null;
+
+  async getCurrent(): Promise<Round> {
+    if (!this.currentRound) throw new Error('No round');
+    return this.currentRound;
+  }
+
+  async save(round: Round, events?: OutboxEvent[]): Promise<void> {
+    this.currentRound = round;
+  }
+
+  async findPendingOutboxEvents(limit: number): Promise<OutboxEvent[]> {
+    return [];
+  }
+
+  async markOutboxEventAsPublished(eventId: string): Promise<void> {}
+  async incrementOutboxEventFailedAttempts(eventId: string): Promise<void> {}
+
+  setCurrentRound(round: Round): void {
+    this.currentRound = round;
+  }
+}
 
 class MockWebSocketEmitter implements IWebSocketEmitter {
   lastBetPlacedDto: BetPlacedDto | null = null;
@@ -27,7 +52,7 @@ class MockWebSocketEmitter implements IWebSocketEmitter {
 describe('PlaceBetUseCase', () => {
   it('places bet and returns BetResponseDto', async () => {
     const round = new Round(new RoundId('round-1'), RoundStatus.BETTING, new Multiplier(2.0));
-    const repo = new RoundRepositoryImpl();
+    const repo = new MockRoundRepository();
     repo.setCurrentRound(round);
     const emitter = new MockWebSocketEmitter();
     const useCase = new PlaceBetUseCase(repo, emitter);
@@ -44,7 +69,7 @@ describe('PlaceBetUseCase', () => {
 
   it('throws when round is not in BETTING', async () => {
     const round = new Round(new RoundId('round-1'), RoundStatus.RUNNING, new Multiplier(2.0));
-    const repo = new RoundRepositoryImpl();
+    const repo = new MockRoundRepository();
     repo.setCurrentRound(round);
     const emitter = new MockWebSocketEmitter();
     const useCase = new PlaceBetUseCase(repo, emitter);

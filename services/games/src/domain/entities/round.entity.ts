@@ -6,6 +6,7 @@ import { PlayerId } from '../value-objects/player-id.vo';
 import { BetId } from '../value-objects/bet-id.vo';
 import { Money } from '../value-objects/money.vo';
 import { InvalidStateTransitionError } from '../errors/invalid-state-transition.error';
+import { RoundSeed } from '../value-objects/round-seed.vo';
 
 type TransitionMap = Partial<Record<RoundStatus, RoundStatus[]>>;
 
@@ -25,17 +26,23 @@ function assertValidTransition(from: RoundStatus, to: RoundStatus): void {
 export class Round {
   private bets: Bet[];
   private currentMultiplier: Multiplier;
+  private seed: RoundSeed | null = null;
 
   constructor(
     private readonly id: RoundId,
-    private status: RoundStatus,
-    private readonly crashPoint: Multiplier,
+    status: RoundStatus,
+    readonly crashPoint: Multiplier,
+    seed?: RoundSeed,
   ) {
     if (crashPoint.raw < 1.0) {
       throw new Error('Crash point must be greater than or equal to 1.0');
     }
     this.currentMultiplier = new Multiplier(1.0);
     this.bets = [];
+    this.status = status;
+    if (seed) {
+      this.seed = seed;
+    }
   }
 
   get roundId(): RoundId {
@@ -56,6 +63,10 @@ export class Round {
 
   get roundBets(): readonly Bet[] {
     return this.bets;
+  }
+
+  get seed(): RoundSeed | null {
+    return this.seed;
   }
 
   start(): void {

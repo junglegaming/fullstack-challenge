@@ -34,10 +34,9 @@ export function generateCrashPoint(
 
   const r = Number(hashBigInt % 10000n);
   const denominator = 1 - r / 10000;
-  const crashValue = (1 / denominator) * (1 - HOUSE_EDGE);
-  const crashPoint = Math.max(1.0, crashValue);
+  const crashValue = Math.max(1.0, (1 / denominator) * (1 - HOUSE_EDGE));
 
-  return new Multiplier(crashPoint);
+  return new Multiplier(crashValue);
 }
 
 export function verifyCrashPoint(
