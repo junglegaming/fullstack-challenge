@@ -25,7 +25,6 @@ class WebSocketService {
 
   private setupListeners() {
     if (!this.socket) return;
-    const store = useGameStore.getState();
 
     this.socket.on("connect", () => {
       console.log("[WS] Connected:", this.socket?.id);
@@ -54,20 +53,36 @@ class WebSocketService {
 
     this.socket.on("round:crashed", (data: { crashPoint: number }) => {
       const state = useGameStore.getState();
-      useGameStore.setState({
+      const now = Date.now();
+
+      // Batch all updates in a single setState
+      const updates: Partial<typeof state> = {
         phase: "CRASHED",
         currentRound: state.currentRound
           ? { ...state.currentRound, crashPoint: data.crashPoint }
           : null,
-        bets: state.bets.map((b) =>
-          b.status === "PENDING" ? { ...b, status: "LOST" as const } : b,
-        ),
-        userBet:
-          state.userBet?.status === "PENDING"
-            ? { ...state.userBet, status: "LOST" as const }
-            : state.userBet,
-      });
-      useGameStore.getState().addRoundToHistory(data.crashPoint);
+      };
+
+      // Update bets: mark pending as LOST
+      const updatedBets = state.bets.map((b) =>
+        b.status === "PENDING" ? { ...b, status: "LOST" as const } : b,
+      );
+
+      // Update userBet if pending
+      const updatedUserBet =
+        state.userBet?.status === "PENDING"
+          ? { ...state.userBet, status: "LOST" as const }
+          : state.userBet;
+
+      updates.bets = updatedBets;
+      updates.userBet = updatedUserBet;
+
+      useGameStore.setState(updates);
+
+      // Add to history (separate call to avoid race with above)
+      setTimeout(() => {
+        useGameStore.getState().addRoundToHistory(data.crashPoint);
+      }, 0);
     });
 
     this.socket.on(
@@ -79,6 +94,7 @@ class WebSocketService {
           amountCents: data.amountCents,
           status: "PENDING",
         };
+
         useGameStore.setState((state) => ({
           bets: [...state.bets, newBet],
           userBet:
@@ -101,14 +117,13 @@ class WebSocketService {
         const state = useGameStore.getState();
         const isUserBet = state.userBet?.betId === betId;
 
-        // Update bets array
+        // Single batch update
         const updatedBets = state.bets.map((b) =>
           b.betId === betId
             ? { ...b, status: "CASHED_OUT" as const, cashoutMultiplier: multiplier }
             : b,
         );
 
-        // Update userBet if it's the user's bet
         const updatedUserBet: UserBet | null = isUserBet
           ? {
               betId: state.userBet!.betId,
@@ -128,6 +143,10 @@ class WebSocketService {
       },
     );
 
+    this.socket.on("wallet:updated", (data: { balanceCents: number }) => {
+      useGameStore.setState({ balance: data.balanceCents });
+    });
+
     this.socket.on("disconnect", (reason: string) => {
       console.log("[WS] Disconnected:", reason);
     });
@@ -142,10 +161,6 @@ class WebSocketService {
 
     this.socket.on("reconnect_failed", () => {
       console.error("[WS] Reconnection failed after max attempts");
-    });
-
-    this.socket.on("wallet:updated", (data: { balanceCents: number }) => {
-      useGameStore.setState({ balance: data.balanceCents });
     });
   }
 

@@ -1,4 +1,25 @@
 {
+  "app\\game\\page.tsx -> @/components/bets-list": {
+    "id": 7863,
+    "files": [
+      "static/chunks/924.0304f927a45aeb53.js",
+      "static/chunks/863.868bd806d27f9450.js"
+    ]
+  },
+  "app\\game\\page.tsx -> @/components/crash-graph": {
+    "id": 3352,
+    "files": [
+      "static/chunks/924.0304f927a45aeb53.js",
+      "static/chunks/971.daf45ed2d43d3cc7.js"
+    ]
+  },
+  "app\\game\\page.tsx -> @/components/round-history": {
+    "id": 8073,
+    "files": [
+      "static/chunks/924.0304f927a45aeb53.js",
+      "static/chunks/73.9088ec22c2851496.js"
+    ]
+  },
   "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
     "id": 5139,
     "files": [

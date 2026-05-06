@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useGameStore } from "@/stores/game-store";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -10,7 +10,49 @@ export function CrashGraph() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number | null>(null);
   const animatedMultiplierRef = useRef(1.0);
+
+  // Use refs to avoid calling getState() on every frame
+  const stateRef = useRef({
+    multiplier: 1.0,
+    phase: "BETTING" as string,
+    crashPoint: 10,
+  });
+
+  // Subscribe to store changes once, update ref
+  useEffect(() => {
+    const unsub = useGameStore.subscribe((state) => {
+      stateRef.current = {
+        multiplier: state.multiplier,
+        phase: state.phase,
+        crashPoint: state.currentRound?.crashPoint || 10,
+      };
+    });
+    // Initialize with current state
+    const s = useGameStore.getState();
+    stateRef.current = {
+      multiplier: s.multiplier,
+      phase: s.phase,
+      crashPoint: s.currentRound?.crashPoint || 10,
+    };
+    return unsub;
+  }, []);
+
   const [showExplosion, setShowExplosion] = useState(false);
+
+  // Watch for crash phase changes outside render loop
+  const prevPhaseRef = useRef<string>("BETTING");
+  useEffect(() => {
+    const unsub = useGameStore.subscribe((state) => {
+      const prev = prevPhaseRef.current;
+      if (state.phase === "CRASHED" && prev !== "CRASHED") {
+        setShowExplosion(true);
+      } else if (state.phase !== "CRASHED") {
+        setShowExplosion(false);
+      }
+      prevPhaseRef.current = state.phase;
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -49,12 +91,10 @@ export function CrashGraph() {
     ) => {
       if (multiplier <= 1.0) return;
 
-      const maxMult = Math.max(crashPoint * 1.2, multiplier * 1.5, 2.0);
       const points: { x: number; y: number }[] = [];
 
       for (let i = 0; i <= 100; i++) {
         const t = i / 100;
-        const multAtT = 1 + (multiplier - 1) * t;
         const x = w * 0.1 + t * w * 0.8;
         const exponent = GROWTH_RATE * t * 60;
         const yNormalized = (Math.exp(exponent) - 1) / (Math.exp(GROWTH_RATE * 60) - 1);
@@ -93,10 +133,7 @@ export function CrashGraph() {
     };
 
     const render = () => {
-      const state = useGameStore.getState();
-      const targetMultiplier = state.multiplier;
-      const phase = state.phase;
-      const crashPoint = state.currentRound?.crashPoint || 10;
+      const { multiplier: targetMultiplier, phase: status, crashPoint } = stateRef.current;
 
       // Smooth interpolation
       if (Math.abs(animatedMultiplierRef.current - targetMultiplier) > 0.01) {
@@ -135,13 +172,13 @@ export function CrashGraph() {
       }
 
       // Curve
-      drawCurve(ctx, width, height, currentMult, phase, crashPoint);
+      drawCurve(ctx, width, height, currentMult, status, crashPoint);
 
       // Multiplier text with glow
       const textColor =
-        phase === "CRASHED"
+        status === "CRASHED"
           ? "#ff0055"
-          : phase === "RUNNING"
+          : status === "RUNNING"
             ? "#00ff88"
             : "#ffffff";
 
@@ -157,22 +194,13 @@ export function CrashGraph() {
       ctx.shadowBlur = 0;
 
       // Crash text
-      if (phase === "CRASHED") {
+      if (status === "CRASHED") {
         ctx.fillStyle = "#ff0055";
         ctx.font = "bold 36px system-ui, -apple-system, sans-serif";
         ctx.shadowColor = "#ff0055";
         ctx.shadowBlur = 40;
         ctx.fillText("CRASHED!", width / 2, height / 2 + 50);
         ctx.shadowBlur = 0;
-
-        // Trigger explosion animation
-        if (!showExplosion) {
-          setShowExplosion(true);
-        }
-      } else {
-        if (showExplosion) {
-          setShowExplosion(false);
-        }
       }
 
       animFrameRef.current = requestAnimationFrame(render);
@@ -184,7 +212,7 @@ export function CrashGraph() {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       resizeObserver.disconnect();
     };
-  }, [showExplosion]);
+  }, []);
 
   return (
     <div className="relative w-full h-64 rounded-lg overflow-hidden border border-[#00ff88]/20 bg-[#0a0a1a] shadow-[0_0_30px_rgba(0,255,136,0.1)]">
@@ -213,8 +241,8 @@ export function CrashGraph() {
                   opacity: 1,
                 }}
                 animate={{
-                  x: `${50 + (Math.cos((i / 20) * Math.PI * 2) * 40)}%`,
-                  y: `${50 + (Math.sin((i / 20) * Math.PI * 2) * 40)}%`,
+                  x: `${50 + Math.cos((i / 20) * Math.PI * 2) * 40}%`,
+                  y: `${50 + Math.sin((i / 20) * Math.PI * 2) * 40}%`,
                   scale: [0, 1.5, 0],
                   opacity: [1, 1, 0],
                 }}

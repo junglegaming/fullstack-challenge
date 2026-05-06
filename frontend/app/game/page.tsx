@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useGameStore } from "@/stores/game-store";
 import { useGameSocket } from "@/services/websocket";
 import { CrashGraph } from "@/components/crash-graph";
@@ -12,11 +13,241 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatusBadge, MyBetDisplay, getBetStatusLabel, getBetStatusColor } from "@/components/game-components";
 
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+
+// Lazy load heavy components
+const CrashGraphLazy = dynamic(
+  () => import("@/components/crash-graph").then((mod) => ({ default: mod.CrashGraph })),
+  {
+    ssr: false,
+    loading: () => <CrashGraphSkeleton />,
+  },
+);
+
+const BetsListLazy = dynamic(
+  () => import("@/components/bets-list").then((mod) => ({ default: mod.BetsList })),
+  { ssr: false, loading: () => <BetsListSkeleton /> },
+);
+
+const RoundHistoryLazy = dynamic(
+  () => import("@/components/round-history").then((mod) => ({ default: mod.RoundHistory })),
+  { ssr: false, loading: () => null },
+);
+
+function CrashGraphSkeleton() {
+  return (
+    <div className="h-64 flex items-center justify-center">
+      <Skeleton className="h-32 w-32 rounded-full bg-[#1a1a2a]" />
+    </div>
+  );
+}
+
+function BetsListSkeleton() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
+      <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
+      <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
+    </div>
+  );
+}
+
+// Extracted components to isolate re-renders
+const BetAmountButton = React.memo(function BetAmountButton({
+  value,
+  onClick,
+  disabled,
+}: {
+  value: string;
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <Button
+      key={value}
+      variant="outline"
+      size="sm"
+      onClick={onClick}
+      disabled={disabled}
+      className="text-xs border-[#00ff88]/30 hover:bg-[#00ff88]/10 text-[#00ff88] hover:border-[#00ff88]/50 transition-all duration-300"
+    >
+      R$ {value}
+    </Button>
+  );
+});
+
+const BetControls = React.memo(function BetControls({
+  betAmount,
+  phase,
+  userBet,
+  balance,
+  isPlacingBet,
+  isCashingOut,
+  onBetAmountChange,
+  onPlaceBet,
+  onCashOut,
+}: {
+  betAmount: string;
+  phase: string;
+  userBet: any;
+  balance: number;
+  isPlacingBet: boolean;
+  isCashingOut: boolean;
+  onBetAmountChange: (v: string) => void;
+  onPlaceBet: () => void;
+  onCashOut: () => void;
+}) {
+  const betAmountCents = useMemo(
+    () => Math.round(parseFloat(betAmount) * 100) || 0,
+    [betAmount],
+  );
+
+  const canBet = phase === "BETTING" && !userBet;
+  const canCashOut = phase === "RUNNING" && userBet?.status === "PENDING";
+  const hasSufficientBalance = betAmountCents <= balance;
+  const isValidAmount = betAmountCents >= 100 && betAmountCents <= 100000;
+  const canPlaceBet = canBet && hasSufficientBalance && isValidAmount;
+
+  const multiplier = useGameStore((s) => s.multiplier);
+  const potentialPayout = userBet
+    ? (userBet.amountCents / 100) * multiplier
+    : (betAmountCents / 100) * multiplier;
+
+  const handleAmountClick = useCallback(
+    (val: string) => () => onBetAmountChange(val),
+    [onBetAmountChange],
+  );
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm text-gray-400 mb-2 font-medium">
+          Valor da Aposta (R$)
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00ff88] text-sm font-bold">
+            R$
+          </span>
+          <Input
+            type="number"
+            value={betAmount}
+            onChange={(e) => onBetAmountChange(e.target.value)}
+            min="1.00"
+            max="1000.00"
+            step="0.01"
+            className="bg-[#1a1a2a] border-[#00ff88]/30 pl-8 text-white placeholder:text-gray-600 focus:border-[#00ff88]/50 focus:shadow-[0_0_10px_rgba(0,255,136,0.3)] transition-all duration-300"
+            disabled={!canBet}
+          />
+        </div>
+        {betAmountCents > balance && (
+          <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
+            <span>&#9888;</span> Saldo insuficiente ({formatCurrency(balance)})
+          </p>
+        )}
+        {betAmountCents > 100000 && (
+          <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
+            <span>&#9888;</span> Valor máximo: R$ 1.000,00
+          </p>
+        )}
+        <div className="grid grid-cols-4 gap-2 mt-2">
+          {["10", "50", "100", "500"].map((val) => (
+            <BetAmountButton
+              key={val}
+              value={val}
+              onClick={handleAmountClick(val)}
+              disabled={!canBet}
+            />
+          ))}
+        </div>
+      </div>
+
+      {(canBet || userBet?.status === "PENDING") && (
+        <div className="text-center p-3 bg-[#1a1a2a] rounded-lg border border-[#00ff88]/10">
+          <p className="text-xs text-gray-400 uppercase tracking-wide">Ganho potencial</p>
+          <p
+            className="text-3xl font-black text-[#00ff88] tabular-nums"
+            style={{ textShadow: "0 0 20px rgba(0,255,136,0.5)" }}
+          >
+            {formatCurrency(potentialPayout * 100)}
+          </p>
+          <p className="text-xs text-gray-500">
+            @ {multiplier.toFixed(2)}x
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <Button
+          onClick={onPlaceBet}
+          disabled={!canPlaceBet || isPlacingBet}
+          variant="neon-green"
+          size="lg"
+          className={`w-full font-black text-lg uppercase tracking-wider ${
+            canPlaceBet && !isPlacingBet ? "" : "opacity-50 cursor-not-allowed"
+          }`}
+        >
+          {isPlacingBet ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              APOSTANDO...
+            </span>
+          ) : !canBet ? (
+            "AGUARDE..."
+          ) : !isValidAmount ? (
+            "VALOR INVÁLIDO"
+          ) : !hasSufficientBalance ? (
+            "SALDO INSUFICIENTE"
+          ) : (
+            "APOSTAR"
+          )}
+        </Button>
+
+        <Button
+          onClick={onCashOut}
+          disabled={!canCashOut || isCashingOut}
+          variant="neon-red"
+          size="lg"
+          className={`w-full font-black text-lg uppercase tracking-wider ${
+            canCashOut && !isCashingOut
+              ? "animate-pulse"
+              : "opacity-50 cursor-not-allowed"
+          }`}
+        >
+          {isCashingOut ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              CASH OUT...
+            </span>
+          ) : canCashOut ? (
+            `CASH OUT @ ${useGameStore.getState().multiplier.toFixed(2)}x`
+          ) : userBet?.status === "CASHED_OUT" ? (
+            `CASH OUT @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
+          ) : (
+            "CASH OUT"
+          )}
+        </Button>
+      </div>
+
+      <div className="pt-4 border-t border-[#ffffff]/10">
+        <p className="text-sm text-gray-400 mb-2 font-medium">Minha Aposta</p>
+        <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+          <MyBetDisplay userBet={userBet} />
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export default function GamePage() {
   const router = useRouter();
@@ -25,14 +256,12 @@ export default function GamePage() {
   const [isCashingOut, setIsCashingOut] = useState(false);
   const { isAuthenticated, isLoading: authLoading, getToken } = useAuth();
 
-  const {
-    multiplier,
-    phase,
-    balance,
-    bets,
-    userBet,
-    setBalance,
-  } = useGameStore();
+  // Individual selectors to avoid re-renders
+  const multiplier = useGameStore((s) => s.multiplier);
+  const phase = useGameStore((s) => s.phase);
+  const balance = useGameStore((s) => s.balance);
+  const bets = useGameStore((s) => s.bets);
+  const userBet = useGameStore((s) => s.userBet);
 
   const { connect, disconnect } = useGameSocket();
 
@@ -54,7 +283,7 @@ export default function GamePage() {
     };
   }, [getToken, connect, disconnect]);
 
-  const handlePlaceBet = async () => {
+  const handlePlaceBet = useCallback(async () => {
     const amountCents = Math.round(parseFloat(betAmount) * 100);
     if (isNaN(amountCents) || amountCents < 100) return;
 
@@ -78,9 +307,9 @@ export default function GamePage() {
     } finally {
       setIsPlacingBet(false);
     }
-  };
+  }, [betAmount, balance, multiplier]);
 
-  const handleCashOut = async () => {
+  const handleCashOut = useCallback(async () => {
     setIsCashingOut(true);
     try {
       await api.post("/games/bet/cashout");
@@ -94,33 +323,7 @@ export default function GamePage() {
     } finally {
       setIsCashingOut(false);
     }
-  };
-
-  const canBet = phase === "BETTING" && !userBet;
-  const canCashOut = phase === "RUNNING" && userBet?.status === "PENDING";
-
-  const betAmountCents = Math.round(parseFloat(betAmount) * 100) || 0;
-  const hasSufficientBalance = betAmountCents <= balance;
-  const isValidAmount = betAmountCents >= 100 && betAmountCents <= 100000;
-  const canPlaceBet = canBet && hasSufficientBalance && isValidAmount;
-
-  const potentialPayout = userBet
-    ? (userBet.amountCents / 100) * multiplier
-    : (betAmountCents / 100) * multiplier;
-
-  const getStatusLabel = () => {
-    if (phase === "BETTING") return "Fase de Apostas";
-    if (phase === "RUNNING") return "Rodada em Andamento";
-    if (phase === "CRASHED") return "Crashou!";
-    return phase;
-  };
-
-  const getStatusColor = () => {
-    if (phase === "BETTING") return "bg-blue-600";
-    if (phase === "RUNNING") return "bg-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.6)]";
-    if (phase === "CRASHED") return "bg-[#ff0055] shadow-[0_0_15px_rgba(255,0,85,0.6)]";
-    return "bg-gray-600";
-  };
+  }, [multiplier]);
 
   if (authLoading) {
     return (
@@ -149,12 +352,10 @@ export default function GamePage() {
                     <Skeleton className="h-32 w-32 rounded-full bg-[#1a1a2a]" />
                   </div>
                 ) : (
-                  <CrashGraph />
+                  <CrashGraphLazy />
                 )}
                 <div className="mt-4 text-center">
-                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${getStatusColor()}`}>
-                    {getStatusLabel()}
-                  </span>
+                  <StatusBadge phase={phase} />
                 </div>
               </CardContent>
             </Card>
@@ -172,7 +373,7 @@ export default function GamePage() {
                     <Skeleton className="h-8 w-full bg-[#1a1a2a]" />
                   </div>
                 ) : (
-                  <BetsList bets={bets} />
+                  <BetsListLazy bets={bets} />
                 )}
               </CardContent>
             </Card>
@@ -184,145 +385,18 @@ export default function GamePage() {
               <CardHeader>
                 <CardTitle className="text-[#00ff88] font-bold uppercase tracking-wider text-lg">Fazer Aposta</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2 font-medium">
-                    Valor da Aposta (R$)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00ff88] text-sm font-bold">
-                      R$
-                    </span>
-                    <Input
-                      type="number"
-                      value={betAmount}
-                      onChange={(e) => setBetAmount(e.target.value)}
-                      min="1.00"
-                      max="1000.00"
-                      step="0.01"
-                      className="bg-[#1a1a2a] border-[#00ff88]/30 pl-8 text-white placeholder:text-gray-600 focus:border-[#00ff88]/50 focus:shadow-[0_0_10px_rgba(0,255,136,0.3)] transition-all duration-300"
-                      disabled={!canBet}
-                    />
-                  </div>
-                  {betAmountCents > balance && (
-                    <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
-                      <span>⚠</span> Saldo insuficiente ({formatCurrency(balance)})
-                    </p>
-                  )}
-                  {betAmountCents > 100000 && (
-                    <p className="text-xs text-[#ff0055] mt-1 flex items-center gap-1">
-                      <span>⚠</span> Valor máximo: R$ 1.000,00
-                    </p>
-                  )}
-                  <div className="grid grid-cols-4 gap-2 mt-2">
-                    {[
-                      { label: "R$ 10", value: "10" },
-                      { label: "R$ 50", value: "50" },
-                      { label: "R$ 100", value: "100" },
-                      { label: "R$ 500", value: "500" },
-                    ].map((opt) => (
-                      <Button
-                        key={opt.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setBetAmount(opt.value)}
-                        disabled={!canBet}
-                        className="text-xs border-[#00ff88]/30 hover:bg-[#00ff88]/10 text-[#00ff88] hover:border-[#00ff88]/50 transition-all duration-300"
-                      >
-                        {opt.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Potencial ganho */}
-                {(canBet || userBet?.status === "PENDING") && (
-                  <div className="text-center p-3 bg-[#1a1a2a] rounded-lg border border-[#00ff88]/10">
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Ganho potencial</p>
-                    <p className="text-3xl font-black text-[#00ff88] tabular-nums" style={{ textShadow: "0 0 20px rgba(0,255,136,0.5)" }}>
-                      {formatCurrency(potentialPayout * 100)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      @ {multiplier.toFixed(2)}x
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={handlePlaceBet}
-                    disabled={!canPlaceBet || isPlacingBet}
-                    variant="neon-green"
-                    size="lg"
-                    className={`w-full font-black text-lg uppercase tracking-wider ${
-                      canPlaceBet && !isPlacingBet ? "" : "opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    {isPlacingBet ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        APOSTANDO...
-                      </span>
-                    ) : !canBet ? (
-                      "AGUARDE..."
-                    ) : !isValidAmount ? (
-                      "VALOR INVÁLIDO"
-                    ) : !hasSufficientBalance ? (
-                      "SALDO INSUFICIENTE"
-                    ) : (
-                      "APOSTAR"
-                    )}
-                  </Button>
-
-                  <Button
-                    onClick={handleCashOut}
-                    disabled={!canCashOut || isCashingOut}
-                    variant="neon-red"
-                    size="lg"
-                    className={`w-full font-black text-lg uppercase tracking-wider ${
-                      canCashOut && !isCashingOut
-                        ? "animate-pulse"
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    {isCashingOut ? (
-                      <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        CASH OUT...
-                      </span>
-                    ) : canCashOut ? (
-                      `CASH OUT @ ${multiplier.toFixed(2)}x`
-                    ) : userBet?.status === "CASHED_OUT" ? (
-                      `CASH OUT @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
-                    ) : (
-                      "CASH OUT"
-                    )}
-                  </Button>
-                </div>
-
-                <div className="pt-4 border-t border-[#ffffff]/10">
-                  <p className="text-sm text-gray-400 mb-2 font-medium">Minha Aposta</p>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {userBet ? (
-                      <div className="flex justify-between text-sm p-2 bg-[#1a1a2a] rounded">
-                        <span className="text-white font-medium">{formatCurrency(userBet.amountCents)}</span>
-                        <span className={getBetStatusColor(userBet.status)}>
-                          {getBetStatusLabel(userBet.status)}
-                          {userBet.cashoutMultiplier &&
-                            ` @ ${userBet.cashoutMultiplier.toFixed(2)}x`}
-                        </span>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm">Nenhuma aposta ativa</p>
-                    )}
-                  </div>
-                </div>
+              <CardContent>
+                <BetControls
+                  betAmount={betAmount}
+                  phase={phase}
+                  userBet={userBet}
+                  balance={balance}
+                  isPlacingBet={isPlacingBet}
+                  isCashingOut={isCashingOut}
+                  onBetAmountChange={setBetAmount}
+                  onPlaceBet={handlePlaceBet}
+                  onCashOut={handleCashOut}
+                />
               </CardContent>
             </Card>
 
@@ -332,7 +406,7 @@ export default function GamePage() {
                 <CardTitle className="text-lg text-[#bf00ff] font-bold">Histórico</CardTitle>
               </CardHeader>
               <CardContent>
-                <RoundHistory />
+                <RoundHistoryLazy />
               </CardContent>
             </Card>
           </div>
@@ -340,16 +414,4 @@ export default function GamePage() {
       </div>
     </main>
   );
-}
-
-function getBetStatusLabel(betStatus: string) {
-  if (betStatus === "CASHED_OUT") return "Ganhou";
-  if (betStatus === "LOST") return "Perdeu";
-  return "Ativo";
-}
-
-function getBetStatusColor(betStatus: string) {
-  if (betStatus === "CASHED_OUT") return "text-[#00ff88] font-bold";
-  if (betStatus === "LOST") return "text-[#ff0055] font-bold";
-  return "text-yellow-400";
 }
