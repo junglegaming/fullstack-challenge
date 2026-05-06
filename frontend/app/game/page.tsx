@@ -62,8 +62,17 @@ export default function GamePage() {
     }
   };
 
-  const canBet = phase === "BETTING";
-  const canCashOut = phase === "RUNNING";
+  const canBet = phase === "BETTING" && !userBet;
+  const canCashOut = phase === "RUNNING" && userBet?.status === "PENDING";
+
+  const betAmountCents = Math.round(parseFloat(betAmount) * 100) || 0;
+  const hasSufficientBalance = betAmountCents <= balance;
+  const isValidAmount = betAmountCents >= 100 && betAmountCents <= 100000;
+  const canPlaceBet = canBet && hasSufficientBalance && isValidAmount;
+
+  const potentialPayout = userBet
+    ? (userBet.amountCents / 100) * multiplier
+    : (betAmountCents / 100) * multiplier;
 
   const getStatusLabel = () => {
     if (phase === "BETTING") return "Fase de Apostas";
@@ -193,50 +202,97 @@ export default function GamePage() {
                   <label className="block text-sm text-gray-400 mb-2">
                     Valor da Aposta (R$)
                   </label>
-                  <Input
-                    type="number"
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(e.target.value)}
-                    min="1.00"
-                    max="1000.00"
-                    step="0.01"
-                    className="bg-gray-800 border-gray-700"
-                    disabled={!canBet}
-                  />
-                  <div className="flex gap-2 mt-2">
-                    {["10", "50", "100", "500"].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => setBetAmount(val)}
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                      R$
+                    </span>
+                    <Input
+                      type="number"
+                      value={betAmount}
+                      onChange={(e) => setBetAmount(e.target.value)}
+                      min="1.00"
+                      max="1000.00"
+                      step="0.01"
+                      className="bg-gray-800 border-gray-700 pl-8 text-white"
+                      disabled={!canBet}
+                    />
+                  </div>
+                  {betAmountCents > balance && (
+                    <p className="text-xs text-red-400 mt-1">
+                      Saldo insuficiente (R$ {(balance / 100).toFixed(2)})
+                    </p>
+                  )}
+                  {betAmountCents > 100000 && (
+                    <p className="text-xs text-red-400 mt-1">
+                      Valor máximo: R$ 1.000,00
+                    </p>
+                  )}
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {[
+                      { label: "R$ 10", value: "10" },
+                      { label: "R$ 50", value: "50" },
+                      { label: "R$ 100", value: "100" },
+                      { label: "R$ 500", value: "500" },
+                    ].map((opt) => (
+                      <Button
+                        key={opt.value}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setBetAmount(opt.value)}
                         disabled={!canBet}
-                        className="flex-1 py-1 text-sm bg-gray-800 rounded hover:bg-gray-700 disabled:opacity-50"
+                        className="text-xs border-gray-700 hover:bg-gray-700 text-gray-300"
                       >
-                        R$ {val}
-                      </button>
+                        {opt.label}
+                      </Button>
                     ))}
                   </div>
                 </div>
 
+                {/* Potencial ganho */}
+                {(canBet || userBet?.status === "PENDING") && (
+                  <div className="text-center p-2 bg-gray-800/50 rounded-lg">
+                    <p className="text-xs text-gray-400">Ganho potencial</p>
+                    <p className="text-2xl font-bold text-green-400">
+                      R$ {potentialPayout.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      @ {multiplier.toFixed(2)}x
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Button
                     onClick={handlePlaceBet}
-                    disabled={!canBet}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600"
+                    disabled={!canPlaceBet}
+                    className={`w-full font-bold text-lg ${
+                      canPlaceBet
+                        ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/50"
+                        : "bg-gray-700 text-gray-400"
+                    }`}
                   >
-                    {canBet ? "Apostar" : "Aguarde..."}
+                    {!canBet
+                      ? "Aguarde..."
+                      : !isValidAmount
+                      ? "Valor inválido"
+                      : !hasSufficientBalance
+                      ? "Saldo insuficiente"
+                      : "Apostar"}
                   </Button>
 
                   <Button
                     onClick={handleCashOut}
                     disabled={!canCashOut}
-                    className={`w-full ${
+                    className={`w-full font-bold text-lg ${
                       canCashOut
-                        ? "bg-red-600 hover:bg-red-700 animate-pulse"
-                        : "bg-gray-600 cursor-not-allowed"
+                        ? "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/50 animate-pulse"
+                        : "bg-gray-700 text-gray-400"
                     }`}
                   >
                     {canCashOut
-                      ? `Cash Out (${multiplier.toFixed(2)}x)`
+                      ? `Cash Out @ ${multiplier.toFixed(2)}x`
+                      : userBet?.status === "CASHED_OUT"
+                      ? `Cash Out @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
                       : "Cash Out"}
                   </Button>
                 </div>
