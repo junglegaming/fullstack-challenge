@@ -6,16 +6,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWallet } from "@/services/wallet";
+import { toast } from "sonner";
 
 export function PlayerHeader() {
   const { isAuthenticated, username } = useAuth();
   const balance = useGameStore((s) => s.balance);
   const setBalance = useGameStore((s) => s.setBalance);
 
-  const { data: wallet, isLoading } = useQuery({
+  const { data: wallet, isLoading, error, refetch } = useQuery({
     queryKey: ["wallet"],
     queryFn: fetchWallet,
     enabled: isAuthenticated,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   useEffect(() => {
@@ -23,6 +26,18 @@ export function PlayerHeader() {
       setBalance(wallet.balanceCents);
     }
   }, [wallet, setBalance]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("Erro ao carregar saldo", {
+        description: "Tente novamente",
+        action: {
+          label: "Recarregar",
+          onClick: () => refetch(),
+        },
+      });
+    }
+  }, [error, refetch]);
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

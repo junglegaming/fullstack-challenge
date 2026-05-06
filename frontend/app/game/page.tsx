@@ -11,13 +11,19 @@ import { PlayerHeader } from "@/components/player-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 export default function GamePage() {
   const router = useRouter();
   const [betAmount, setBetAmount] = useState("10.00");
-  const { isAuthenticated, isLoading, token, getToken } = useAuth();
+  const [isPlacingBet, setIsPlacingBet] = useState(false);
+  const [isCashingOut, setIsCashingOut] = useState(false);
+  const { isAuthenticated, isLoading: authLoading, getToken } = useAuth();
 
   const {
     multiplier,
@@ -25,16 +31,17 @@ export default function GamePage() {
     balance,
     bets,
     userBet,
+    setBalance,
   } = useGameStore();
 
   const { connect, disconnect } = useGameSocket();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push("/");
       return;
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
     const t = getToken();
@@ -51,18 +58,41 @@ export default function GamePage() {
     const amountCents = Math.round(parseFloat(betAmount) * 100);
     if (isNaN(amountCents) || amountCents < 100) return;
 
+    if (amountCents > balance) {
+      toast.error("Saldo insuficiente", {
+        description: `Seu saldo é ${formatCurrency(balance)}`,
+      });
+      return;
+    }
+
+    setIsPlacingBet(true);
     try {
       await api.post("/games/bet", { amountCents });
-    } catch (e) {
-      console.error("Bet error:", e);
+      toast.success("Aposta realizada!", {
+        description: `R$ ${(amountCents / 100).toFixed(2)} no multiplicador ${multiplier.toFixed(2)}x`,
+      });
+    } catch (e: any) {
+      toast.error("Erro ao apostar", {
+        description: e.message || "Tente novamente",
+      });
+    } finally {
+      setIsPlacingBet(false);
     }
   };
 
   const handleCashOut = async () => {
+    setIsCashingOut(true);
     try {
       await api.post("/games/bet/cashout");
-    } catch (e) {
-      console.error("Cashout error:", e);
+      toast.success("Cash Out realizado!", {
+        description: `Multiplicador ${multiplier.toFixed(2)}x`,
+      });
+    } catch (e: any) {
+      toast.error("Erro no Cash Out", {
+        description: e.message || "Tente novamente",
+      });
+    } finally {
+      setIsCashingOut(false);
     }
   };
 
@@ -92,22 +122,14 @@ export default function GamePage() {
     return "bg-gray-600";
   };
 
-  const getBetStatusLabel = (betStatus: string) => {
-    if (betStatus === "CASHED_OUT") return "Ganhou";
-    if (betStatus === "LOST") return "Perdeu";
-    return "Ativo";
-  };
-
-  const getBetStatusColor = (betStatus: string) => {
-    if (betStatus === "CASHED_OUT") return "text-green-400";
-    if (betStatus === "LOST") return "text-red-400";
-    return "text-yellow-400";
-  };
-
-  if (isLoading) {
+  if (authLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4 flex items-center justify-center">
-        <p className="text-gray-400">Carregando...</p>
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-48" />
+          <Skeleton className="h-64 w-full max-w-3xl" />
+          <Skeleton className="h-32 w-full max-w-3xl" />
+        </div>
       </main>
     );
   }
@@ -122,7 +144,13 @@ export default function GamePage() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardContent className="pt-6">
-                <CrashGraph />
+                {phase === "BETTING" && !userBet ? (
+                  <div className="h-64 flex items-center justify-center">
+                    <Skeleton className="h-32 w-32 rounded-full" />
+                  </div>
+                ) : (
+                  <CrashGraph />
+                )}
                 <div className="mt-4 text-center">
                   <span className={`inline-block px-4 py-2 rounded-full text-sm ${getStatusColor()}`}>
                     {getStatusLabel()}
@@ -137,7 +165,15 @@ export default function GamePage() {
                 <CardTitle className="text-lg">Apostas da Rodada</CardTitle>
               </CardHeader>
               <CardContent>
-                <BetsList bets={bets} />
+                {bets.length === 0 ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                ) : (
+                  <BetsList bets={bets} />
+                )}
               </CardContent>
             </Card>
           </div>
@@ -215,36 +251,50 @@ export default function GamePage() {
                 <div className="space-y-2">
                   <Button
                     onClick={handlePlaceBet}
-                    disabled={!canPlaceBet}
+                    disabled={!canPlaceBet || isPlacingBet}
                     className={`w-full font-bold text-lg ${
-                      canPlaceBet
+                      canPlaceBet && !isPlacingBet
                         ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/50"
                         : "bg-gray-700 text-gray-400"
                     }`}
                   >
-                    {!canBet
-                      ? "Aguarde..."
-                      : !isValidAmount
-                      ? "Valor inválido"
-                      : !hasSufficientBalance
-                      ? "Saldo insuficiente"
-                      : "Apostar"}
+                    {isPlacingBet ? (
+                      <span className="flex items-center gap-2">
+                        <Spinner className="h-4 w-4" />
+                        Apostando...
+                      </span>
+                    ) : !canBet ? (
+                      "Aguarde..."
+                    ) : !isValidAmount ? (
+                      "Valor inválido"
+                    ) : !hasSufficientBalance ? (
+                      "Saldo insuficiente"
+                    ) : (
+                      "Apostar"
+                    )}
                   </Button>
 
                   <Button
                     onClick={handleCashOut}
-                    disabled={!canCashOut}
+                    disabled={!canCashOut || isCashingOut}
                     className={`w-full font-bold text-lg ${
-                      canCashOut
+                      canCashOut && !isCashingOut
                         ? "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/50 animate-pulse"
                         : "bg-gray-700 text-gray-400"
                     }`}
                   >
-                    {canCashOut
-                      ? `Cash Out @ ${multiplier.toFixed(2)}x`
-                      : userBet?.status === "CASHED_OUT"
-                      ? `Cash Out @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
-                      : "Cash Out"}
+                    {isCashingOut ? (
+                      <span className="flex items-center gap-2">
+                        <Spinner className="h-4 w-4" />
+                        Cash Out...
+                      </span>
+                    ) : canCashOut ? (
+                      `Cash Out @ ${multiplier.toFixed(2)}x`
+                    ) : userBet?.status === "CASHED_OUT" ? (
+                      `Cash Out @ ${userBet.cashoutMultiplier?.toFixed(2)}x`
+                    ) : (
+                      "Cash Out"
+                    )}
                   </Button>
                 </div>
 
@@ -284,9 +334,39 @@ export default function GamePage() {
   );
 }
 
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(cents / 100);
+function getBetStatusLabel(betStatus: string) {
+  if (betStatus === "CASHED_OUT") return "Ganhou";
+  if (betStatus === "LOST") return "Perdeu";
+  return "Ativo";
+}
+
+function getBetStatusColor(betStatus: string) {
+  if (betStatus === "CASHED_OUT") return "text-green-400";
+  if (betStatus === "LOST") return "text-red-400";
+  return "text-yellow-400";
+}
+
+function Spinner({ className }: { className?: string }) {
+  return (
+    <svg
+      className={`animate-spin ${className}`}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
 }
