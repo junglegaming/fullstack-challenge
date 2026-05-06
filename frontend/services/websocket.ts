@@ -67,6 +67,7 @@ class WebSocketService {
             ? { ...state.userBet, status: "LOST" as const }
             : state.userBet,
       });
+      useGameStore.getState().addRoundToHistory(data.crashPoint);
     });
 
     this.socket.on(

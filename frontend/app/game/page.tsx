@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useGameSocket } from "@/services/websocket";
 import { CrashGraph } from "@/components/crash-graph";
 import { BetsList } from "@/components/bets-list";
+import { RoundHistory } from "@/components/round-history";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -272,24 +273,7 @@ export default function GamePage() {
                 <CardTitle className="text-lg">Histórico</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-1 flex-wrap">
-                  {[2.1, 1.5, 3.2, 1.0, 5.7, 1.2, 10.3, 1.0, 2.8, 1.0, 1.3, 2.2, 1.0, 4.5, 1.0].map(
-                    (crash, i) => (
-                      <div
-                        key={i}
-                        className={`w-10 h-8 rounded flex items-center justify-center text-xs font-bold ${
-                          crash < 1.5
-                            ? "bg-red-900 text-red-400"
-                            : crash < 3
-                            ? "bg-yellow-900 text-yellow-400"
-                            : "bg-green-900 text-green-400"
-                        }`}
-                      >
-                        {crash.toFixed(1)}x
-                      </div>
-                    ),
-                  )}
-                </div>
+                <RoundHistory />
               </CardContent>
             </Card>
           </div>

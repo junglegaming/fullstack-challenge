@@ -31,6 +31,7 @@ interface GameState {
   bets: Bet[];
   userBet: UserBet | null;
   balance: number; // in cents
+  roundHistory: number[]; // last rounds' crash points, newest first
 
   // Actions
   setRound: (round: Round | null) => void;
@@ -40,6 +41,7 @@ interface GameState {
   cashoutBet: (betId: string, multiplier: number) => void;
   setBalance: (balance: number) => void;
   resetForNewRound: () => void;
+  addRoundToHistory: (crashPoint: number) => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -50,6 +52,7 @@ export const useGameStore = create<GameState>((set) => ({
   bets: [],
   userBet: null,
   balance: 0,
+  roundHistory: [],
 
   // Actions
   setRound: (currentRound) => set({ currentRound }),
@@ -101,4 +104,10 @@ export const useGameStore = create<GameState>((set) => ({
       userBet: null,
       currentRound: null,
     })),
+
+  addRoundToHistory: (crashPoint) =>
+    set((state) => {
+      const newHistory = [crashPoint, ...state.roundHistory];
+      return { roundHistory: newHistory.slice(0, 10) };
+    }),
 }));
