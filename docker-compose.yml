@@ -137,16 +137,21 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    depends_on:
+      - games
+      - wallets
+    environment:
+      - NEXT_PUBLIC_GAMES_API=http://localhost:3000
+      - NEXT_PUBLIC_WS_URL=http://localhost:3000
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
 
 volumes:
   postgres_data:

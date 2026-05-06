@@ -17,8 +17,8 @@ export class KeycloakService {
   login() {
     const redirectUri =
       typeof window !== "undefined"
-        ? window.location.origin + "/game"
-        : "http://localhost:3000/game";
+        ? window.location.origin + "/api/auth/callback"
+        : "http://localhost:3002/api/auth/callback";
 
     const codeChallenge = this.generateCodeChallenge();
 
