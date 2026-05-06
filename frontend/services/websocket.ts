@@ -8,9 +8,8 @@ class WebSocketService {
     if (this.socket?.connected) return;
 
     this.socket = io(
-      process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8000",
+      process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000",
       {
-        path: "/ws/game",
         transports: ["websocket"],
         autoConnect: true,
       },
@@ -23,20 +22,32 @@ class WebSocketService {
     });
 
     this.socket.on("round:started", (data) => {
-      store.setStatus("RUNNING");
-      store.resetBets();
-      store.setMultiplier(1.0);
-      store.setCrashPoint(data.crashPoint ?? null);
+      store.setRound({
+        id: data.roundId,
+        crashPoint: data.crashPoint,
+        startedAt: Date.now(),
+      });
+      store.setPhase("BETTING");
+      store.updateMultiplier(1.0);
+      // Clear previous round bets
+      useGameStore.setState({ bets: [], userBet: null });
     });
 
     this.socket.on("round:multiplier_update", (data) => {
-      store.setMultiplier(data.multiplier);
-      store.setStatus("RUNNING");
+      store.updateMultiplier(data.multiplier);
+      store.setPhase("RUNNING");
     });
 
     this.socket.on("round:crashed", (data) => {
-      store.setStatus("CRASHED");
-      store.setCrashPoint(data.crashPoint ?? null);
+      store.setPhase("CRASHED");
+      // Update crash point in round if not already set
+      const currentRound = useGameStore.getState().currentRound;
+      if (currentRound && !currentRound.crashPoint) {
+        store.setRound({
+          ...currentRound,
+          crashPoint: data.crashPoint,
+        });
+      }
     });
 
     this.socket.on("bet:placed", (data) => {
@@ -44,15 +55,12 @@ class WebSocketService {
         betId: data.betId,
         playerId: data.playerId,
         amountCents: data.amountCents,
-        status: "ACTIVE",
+        status: "PENDING",
       });
     });
 
     this.socket.on("bet:cashed_out", (data) => {
-      store.updateBet(data.betId, {
-        status: "CASHED_OUT",
-        cashoutMultiplier: data.multiplier,
-      });
+      store.cashoutBet(data.betId, data.multiplier);
     });
 
     this.socket.on("disconnect", () => {

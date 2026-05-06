@@ -145,12 +145,13 @@ export default function GamePage() {
 
   const {
     multiplier,
-    status,
+    phase,
     balance,
-    activeBets,
+    bets,
+    userBet,
     setBalance,
-    setStatus,
-    setMultiplier,
+    setPhase,
+    updateMultiplier,
   } = useGameStore();
 
   useEffect(() => {
@@ -188,20 +189,20 @@ export default function GamePage() {
     }
   };
 
-  const canBet = status === "BETTING";
-  const canCashOut = status === "RUNNING";
+  const canBet = phase === "BETTING";
+  const canCashOut = phase === "RUNNING";
 
   const getStatusLabel = () => {
-    if (status === "BETTING") return "Fase de Apostas";
-    if (status === "RUNNING") return "Rodada em Andamento";
-    if (status === "CRASHED") return "Crashou!";
-    return status;
+    if (phase === "BETTING") return "Fase de Apostas";
+    if (phase === "RUNNING") return "Rodada em Andamento";
+    if (phase === "CRASHED") return "Crashou!";
+    return phase;
   };
 
   const getStatusColor = () => {
-    if (status === "BETTING") return "bg-blue-600";
-    if (status === "RUNNING") return "bg-green-600 animate-pulse";
-    if (status === "CRASHED") return "bg-red-600";
+    if (phase === "BETTING") return "bg-blue-600";
+    if (phase === "RUNNING") return "bg-green-600 animate-pulse";
+    if (phase === "CRASHED") return "bg-red-600";
     return "bg-gray-600";
   };
 
@@ -236,7 +237,7 @@ export default function GamePage() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardContent className="pt-6">
-                <MultiplierChart multiplier={multiplier} status={status} />
+                <MultiplierChart multiplier={multiplier} status={phase} />
                 <div className="mt-4 text-center">
                   <span className={`inline-block px-4 py-2 rounded-full text-sm ${getStatusColor()}`}>
                     {getStatusLabel()}
@@ -253,7 +254,7 @@ export default function GamePage() {
               <CardContent>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   <AnimatePresence>
-                    {activeBets.map((bet) => (
+                    {bets.map((bet) => (
                       <motion.div
                         key={bet.betId}
                         initial={{ opacity: 0, y: -20 }}
@@ -298,7 +299,7 @@ export default function GamePage() {
                       </motion.div>
                     ))}
                   </AnimatePresence>
-                  {activeBets.length === 0 && (
+                  {bets.length === 0 && (
                     <p className="text-center text-gray-500 py-4">
                       Nenhuma aposta nesta rodada
                     </p>
@@ -368,21 +369,20 @@ export default function GamePage() {
                 </div>
 
                 <div className="pt-4 border-t border-gray-800">
-                  <p className="text-sm text-gray-400 mb-2">Minhas Apostas</p>
+                  <p className="text-sm text-gray-400 mb-2">Minha Aposta</p>
                   <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {activeBets
-                      .filter((b) => b.playerId === "player")
-                      .map((bet) => (
-                        <div
-                          key={bet.betId}
-                          className="flex justify-between text-sm"
-                        >
-                          <span>R$ {(bet.amountCents / 100).toFixed(2)}</span>
-                          <span className={getBetStatusColor(bet.status)}>
-                            {getBetStatusLabel(bet.status)}
-                          </span>
-                        </div>
-                      ))}
+                    {userBet ? (
+                      <div className="flex justify-between text-sm">
+                        <span>R$ {(userBet.amountCents / 100).toFixed(2)}</span>
+                        <span className={getBetStatusColor(userBet.status)}>
+                          {getBetStatusLabel(userBet.status)}
+                          {userBet.cashoutMultiplier &&
+                            ` @ ${userBet.cashoutMultiplier.toFixed(2)}x`}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm">Nenhuma aposta ativa</p>
+                    )}
                   </div>
                 </div>
               </CardContent>
