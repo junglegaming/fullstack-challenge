@@ -7,6 +7,7 @@ import { useGameSocket } from "@/services/websocket";
 import { CrashGraph } from "@/components/crash-graph";
 import { BetsList } from "@/components/bets-list";
 import { RoundHistory } from "@/components/round-history";
+import { PlayerHeader } from "@/components/player-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,16 +106,7 @@ export default function GamePage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-950 text-white p-4">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-green-400">Crash Game</h1>
-          <div className="text-right">
-            <p className="text-sm text-gray-400">Saldo</p>
-            <p className="text-2xl font-bold">
-              R$ {(balance / 100).toFixed(2)}
-            </p>
-          </div>
-        </div>
+        <PlayerHeader />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Game Area */}

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { fetchWallet } from "@/services/wallet";
 
 // Types
 export interface Round {
@@ -40,6 +41,7 @@ interface GameState {
   addBet: (bet: Bet) => void;
   cashoutBet: (betId: string, multiplier: number) => void;
   setBalance: (balance: number) => void;
+  fetchBalance: () => Promise<void>;
   resetForNewRound: () => void;
   addRoundToHistory: (crashPoint: number) => void;
 }
@@ -95,6 +97,15 @@ export const useGameStore = create<GameState>((set) => ({
     })),
 
   setBalance: (balance) => set({ balance }),
+
+  fetchBalance: async () => {
+    try {
+      const wallet = await fetchWallet();
+      set({ balance: wallet.balanceCents });
+    } catch (e) {
+      console.error("Failed to fetch balance:", e);
+    }
+  },
 
   resetForNewRound: () =>
     set((state) => ({

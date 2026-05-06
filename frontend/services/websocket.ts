@@ -143,6 +143,10 @@ class WebSocketService {
     this.socket.on("reconnect_failed", () => {
       console.error("[WS] Reconnection failed after max attempts");
     });
+
+    this.socket.on("wallet:updated", (data: { balanceCents: number }) => {
+      useGameStore.setState({ balance: data.balanceCents });
+    });
   }
 
   disconnect() {
