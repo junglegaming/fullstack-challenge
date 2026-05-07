@@ -3,6 +3,7 @@ import { RoundStatus } from "../domain/enum/round-status.enum"
 import { IGameEmitter } from "./interfaces/game-emitter.interface";
 import { RoundService } from "./service/round.service"
 import { Injectable } from "@nestjs/common"
+import * as crypto from 'node:crypto';
 
 
 @Injectable()
@@ -48,19 +49,23 @@ export class GameEngine {
   }
 
   private startBettingPhase() {
-    this.activeBets.clear();
-    const crashPoint = this.generateCrashPoint();
+  this.activeBets.clear();
 
-    this.currentRound = new Round(crypto.randomUUID(), crashPoint);
-    this.roundService.setCurrentRound(this.currentRound); 
+  // 1. Gera a semente (Importante usar o crypto do Node aqui)
+  const serverSeed = crypto.randomBytes(32).toString('hex');
 
-    console.log('🟡 Betting phase started');
-    
-    // Usamos o emitter opcional
-    this.emitter?.emitRoundStarted(this.currentRound.id);
+  // 2. USA A ENTIDADE! (É aqui que o erro morre)
+  // O Round.create já vai calcular o crashPoint e o Hash internamente
+  this.currentRound = Round.create(crypto.randomUUID(), serverSeed);
 
-    setTimeout(() => this.startRound(), 10000);
-  }
+  console.log(`🟡 Rodada Criada: ${this.currentRound.id}`);
+  console.log(`🎯 O Crash será em: ${this.currentRound.crashPoint}x`); // Confira se aqui aparece um número variado!
+
+  // 3. Avisa o Gateway
+  this.emitter?.emitRoundStarted(this.currentRound.id, this.currentRound.serverSeedHash);
+
+  setTimeout(() => this.startRound(), 10000);
+}
 
   private startRound() {
   if (!this.currentRound) return;
@@ -94,16 +99,30 @@ export class GameEngine {
 }
 
   private crashRound() {
-    if (!this.currentRound) return;
-    this.currentRound.crash();
-    this.activeBets.clear();
-    console.log(`💥 Crashed at ${this.currentMultiplier.toFixed(2)}x`);
-    this.emitter?.emitCrash(this.currentMultiplier);
-    
-    setTimeout(() => this.startBettingPhase(), 5000);
-  }
+  if (!this.currentRound) return;
+  
+  this.currentRound.crash();
 
-  private generateCrashPoint(): number {
-    return Number((Math.random() * 10 + 1).toFixed(2));
-  }
+  this.roundService.setCurrentRound(this.currentRound);
+  
+  // LOG PARA VOCÊ CONFERIR NO TERMINAL
+  console.log(`💥 Crashed at ${this.currentMultiplier.toFixed(2)}x`);
+  console.log(`🔑 Revelando a Seed: ${this.currentRound.serverSeed}`);
+
+  // ENVIAR PARA O EMITTER (Passo 7)
+  // O seu emitCrash precisa receber esses dois valores
+  this.emitter?.emitCrash(
+    this.currentRound.crashPoint, 
+    this.currentRound.serverSeed
+  );
+  
+  this.activeBets.clear();
+  
+  // Intervalo de 5 segundos para a próxima rodada
+  setTimeout(() => this.startBettingPhase(), 5000);
+}
+
+  // private generateCrashPoint(): number {
+  //   return Number((Math.random() * 10 + 1).toFixed(2));
+  // }
 }

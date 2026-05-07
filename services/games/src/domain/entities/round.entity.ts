@@ -1,14 +1,22 @@
 import { RoundStatus } from '../enum/round-status.enum'
+import { calculateCrashPoint, hashServerSeed } from '../util/provably-fair';
 import { Bet } from './bet.entity'
 
 export class Round {
   private _status = RoundStatus.BETTING
   private _bets: Bet[] = []
+  public readonly createdAt: Date;
+  
 
   constructor(
     public readonly id: string,
     public readonly crashPoint: number,
-  ) {}
+    public readonly serverSeed: string,
+    public readonly serverSeedHash: string,
+    createdAt?: Date,
+  ) {
+    this.createdAt = createdAt ?? new Date();
+  }
 
   get status() {
     return this._status
@@ -66,5 +74,18 @@ export class Round {
   }
 
   return bet.cashout(multiplier)
+  }
+
+  static create(id: string, serverSeed: string): Round {
+    // Aqui você chama as funções que criou no Passo 2 e 3
+    const hash = hashServerSeed(serverSeed);
+    const multiplier = calculateCrashPoint(serverSeed);
+
+    return new Round(
+      id,
+      multiplier,
+      serverSeed,
+      hash
+    );
   }
 }

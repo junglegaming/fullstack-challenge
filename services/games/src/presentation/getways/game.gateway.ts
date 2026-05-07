@@ -17,9 +17,12 @@ export class GameGateway implements OnModuleInit, IGameEmitter {
     this.engine.start();
   }
 
-  emitRoundStarted(roundId: string) {
-    this.server?.emit('round_started', { roundId });
-  }
+  emitRoundStarted(roundId: string, hash: string) {
+  this.server.emit('events', {
+    type: 'ROUND_STARTED',
+    payload: { roundId, hash } // Agora enviando o hash para o front!
+  });
+}
 
   emitMultiplier(multiplier: number) {
     this.server?.emit('multiplier_update', { multiplier: multiplier.toFixed(2) });
