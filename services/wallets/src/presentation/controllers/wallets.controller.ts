@@ -1,8 +1,8 @@
 
 import { Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
-import { CreateWalletUseCase } from "@/application/usecases/create-wallet.usecase";
-import { GetWalletUseCase } from "@/application/usecases/get-wallet.usecase";
+import { CreateWalletUseCase } from "../../application/usecases/create-wallet.usecase";
+import { GetWalletUseCase } from "../../application/usecases/get-wallet.usecase";
 
 @Controller("wallets")
 export class WalletsController {
@@ -13,12 +13,12 @@ export class WalletsController {
 
    @Get("health")
   check(): HealthCheckResponseDto {
-    return { status: "ok", service: "wallets" };
+    return { status: "ok", service: "wallets" };  
   }
   
   @Post()
   async create(@Req() req: AuthenticatedRequest){
-    const playerId = "test-player"
+    const playerId = "test-player1"
 
     const wallet = await this.createWallet.execute(playerId)
 
@@ -36,7 +36,7 @@ export class WalletsController {
 
     return {
       playerId: wallet.playerId,
-      balance: wallet.balance.toString,
+      balance: wallet.balance.toString(),
     }
   }
 }

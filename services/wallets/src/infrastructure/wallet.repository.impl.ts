@@ -10,7 +10,8 @@ export class WalletRepositoryImpl implements WalletRepository {
   async findByPlayerId(playerId: string) {
     const data = await this.prisma.wallet.findUnique({
       where: { 
-        playerId 
+        playerId,
+        
     },
     })
 
