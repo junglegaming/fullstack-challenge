@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge-runtime-webpack.js",
+        "server/middleware.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/game(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/game/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/profile(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/profile/:path*"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "St3vxhvWSmTnqCRShA6j7",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "/qKcoa8KXnuYpTmfTfhqUBZQd4YEijfMfniTGbR7Ols=",
+        "__NEXT_PREVIEW_MODE_ID": "53c623c529462f9225386a8795fe6b58",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "4c34ef31a9e42e4a7008d3766056ef3a4815aebac5a2174fc14741597e69db35",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "be860a20b1fe2e20948ac5b3ac4bc392da565792f71f3609eda9e6d258a39169"
+      }
+    }
+  },
+  "functions": {},
+  "sortedMiddleware": [
+    "/"
+  ]
+}

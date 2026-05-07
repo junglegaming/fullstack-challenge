@@ -1,18 +1,143 @@
-_format_version: "3.0"
+﻿_format_version: "3.0"
 
+# ===========================================================================
+# Plugins Globais
+# ===========================================================================
+plugins:
+  # CORS - Permite que o frontend (localhost:3000/3002) acesse a API
+  - name: cors
+    config:
+      origins:
+        - "http://localhost:3000"
+        - "http://localhost:3002"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Requested-With
+      exposed_headers:
+        - X-Auth-Token
+      credentials: true
+      max_age: 3600
+
+  # Rate Limiting Global
+  - name: rate-limiting
+    config:
+      minute: 200
+      hour: 5000
+      policy: local
+      fault_tolerant: true
+
+# ===========================================================================
+# Game Service (via Kong)
+# ===========================================================================
 services:
   - name: games-service
     url: http://games:4001
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          hour: 2000
+          policy: local
+          fault_tolerant: true
     routes:
-      - name: games-routes
+      # Health check público
+      - name: games-health-route
         paths:
-          - /games
-        strip_path: true
+          - /games/health
+        strip_path: false
+        methods:
+          - GET
 
+      - name: games-public-routes
+        paths:
+          - /games/rounds
+        strip_path: false
+        methods:
+          - GET
+
+      # Rotas Protegidas (exigem JWT)
+      - name: games-protected-routes
+        paths:
+          - /games/bets
+          - /games/bet
+        strip_path: false
+        methods:
+          - GET
+          - POST
+        plugins:
+         -  name: jwt
+            config:
+              key_claim_name: sub
+              claims_to_verify:
+                - exp
+                - nbf
+
+# ===========================================================================
+# Wallet Service (via Kong)
+# ===========================================================================
   - name: wallets-service
     url: http://wallets:4002
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          hour: 2000
+          policy: local
+          fault_tolerant: true
     routes:
-      - name: wallets-routes
+      # Rotas Públicas
+      - name: wallets-public-routes
+        paths:
+          - /wallets/health
+        strip_path: false
+        methods:
+          - GET
+
+      # Rotas Protegidas
+      - name: wallets-protected-routes
         paths:
           - /wallets
-        strip_path: true
+        strip_path: false
+        methods:
+          - GET
+          - POST
+        plugins:
+          - name: jwt
+            config:
+              key_claim_name: sub
+              claims_to_verify:
+                - exp
+                - nbf
+
+# ===========================================================================
+# Consumers (para validação JWT do Keycloak)
+# ===========================================================================
+# Nota: Para validação completa do JWT do Keycloak, a chave pública deve ser
+# extraída do realm do Keycloak e configurada abaixo.
+# Endpoint: http://localhost:8080/realms/crash-game/protocol/openid-connect/certs
+#
+# Exemplo de configuração (preencher com a chave pública real):
+#
+consumers:
+  - username: keycloak-crash-game-client
+    jwt_secrets:
+      - key: crash-game-client
+        algorithm: RS256
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3DCajtbRuthgC2yt9BFR
+          YFQGWu971L+Eu+aV+KAG2ZbhnJ9xG4KvyVamncnAECajQxCS4cT4269GA9oXGrSq
+          yRIkCUEDsnwWhGHVgQHPT63XiYsZnrCDNQqC3dxaFS1murysrPRe3ab2FEfbBe69
+          jTLFHuIjAw8rQ0GaMr6QM6YiJXeooc0+O7WrQQZZZ65gl4Zdb/fAMkuWMbZueSmC
+          aQ/qHcXB38dIWiRBQKr1kFFvbXDQCaJIUy2Qo9M+FZtlIPd5EqqUqf3T9GCdp+tJ
+          LtlvhNy6xv+9U+54EyiCurpa5M5b1WFcM4tiU/5Q3KPjJRjTXQE/JUPeJVQ8oecb
+          rwIDAQAB
+          -----END PUBLIC KEY-----

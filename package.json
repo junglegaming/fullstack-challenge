@@ -4,7 +4,7 @@
   "workspaces": [
     "services/*",
     "packages/*",
-    "frontend"
+    "frontend/*"
   ],
   "scripts": {
     "docker:up": "docker compose up",

@@ -3,7 +3,7 @@ services:
   # PostgreSQL 18
   # ---------------------------------------------------------------------------
   postgres:
-    image: postgres:18.3-alpine
+    image: postgres:17-alpine
     ports:
       - "5432:5432"
     environment:
@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -91,14 +91,13 @@ services:
         condition: service_healthy
 
   # ---------------------------------------------------------------------------
-  # Games Service
+  # Games Service (apenas acessível via Kong na rede interna)
   # ---------------------------------------------------------------------------
   games:
     build:
       context: ./services/games
       dockerfile: Dockerfile
-    ports:
-      - "4001:4001"
+    # ports: removido - serviço só acessível via Kong na rede Docker
     env_file:
       - ./services/games/.env
     depends_on:
@@ -114,14 +113,13 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Wallets Service
+  # Wallets Service (apenas acessível via Kong na rede interna)
   # ---------------------------------------------------------------------------
   wallets:
     build:
       context: ./services/wallets
       dockerfile: Dockerfile
-    ports:
-      - "4002:4002"
+    # ports: removido - serviço só acessível via Kong na rede Docker
     env_file:
       - ./services/wallets/.env
     depends_on:
@@ -137,16 +135,26 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    depends_on:
+      - kong
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
+
+  toolbox:
+    image: alpine:3.19
+    command: sh -c "apk add --no-cache curl jq openssl coreutils && sleep infinity"
+    depends_on:
+      - keycloak
 
 volumes:
   postgres_data:
