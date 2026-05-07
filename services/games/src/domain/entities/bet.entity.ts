@@ -12,13 +12,15 @@ export class Bet {
     return this._status
   }
 
-  cashout() {
-    if (this._status !== BetStatus.PENDING) {
-      throw new Error('BET_ALREADY_RESOLVED')
-    }
-
-    this._status = BetStatus.CASHED_OUT
+  cashout(multiplier: number) {
+  if (this._status !== BetStatus.PENDING) {
+    throw new Error('BET_ALREADY_RESOLVED')
   }
+
+  this._status = BetStatus.CASHED_OUT
+
+  return Number(this.amount) * multiplier
+}
 
   lose() {
     this._status = BetStatus.LOST

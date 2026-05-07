@@ -55,4 +55,16 @@ export class Round {
       }
     })
   }
+
+  cashout(playerId: string, multiplier: number) {
+  const bet = this._bets.find(
+    bet => bet.playerId === playerId,
+  )
+
+  if (!bet) {
+    throw new Error('BET_NOT_FOUND')
+  }
+
+  return bet.cashout(multiplier)
+  }
 }

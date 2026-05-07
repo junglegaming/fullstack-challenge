@@ -1,9 +1,11 @@
+import { GameGateway } from "../presentation/getways/game.gateway"
 import { Round } from "../domain/entities/round.entity"
 
 export class GameEngine {
   private currentRound: Round | null = null
   private currentMultiplier = 1
 
+  constructor(private gateway: GameGateway) {}
   start() {
     this.startBettingPhase()
   }
@@ -17,6 +19,8 @@ export class GameEngine {
       crypto.randomUUID(),
       crashPoint,
     )
+
+    this.gateway.emitRoundStarted(this.currentRound.id)
 
     setTimeout(() => {
       this.startRound()
@@ -39,6 +43,8 @@ export class GameEngine {
         `Multiplier: ${this.currentMultiplier.toFixed(2)}x`,
       )
 
+      this.gateway.emitMultiplier(this.currentMultiplier)
+
       if (
         this.currentMultiplier >=
         this.currentRound!.crashPoint
@@ -59,6 +65,8 @@ export class GameEngine {
       `💥 Crashed at ${this.currentMultiplier.toFixed(2)}x`,
     )
 
+    this.gateway.emitCrash(this.currentMultiplier)
+    
     setTimeout(() => {
       this.startBettingPhase()
     }, 5000)
