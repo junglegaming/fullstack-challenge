@@ -37,7 +37,7 @@ export class GamesController {
       playerId,
     )
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get('rounds/:id/verify')
 async verify(@Param('id') id: string) {
   // 1. Busca a rodada no seu banco ou service
@@ -61,6 +61,12 @@ async verify(@Param('id') id: string) {
     timestamp: round.createdAt
   };
 }
+  @UseGuards(JwtAuthGuard)
+  @Get('history')
+  async getHistory() {
+    // Muito mais limpo! O controller não precisa saber que o Repository existe.
+    return await this.roundService.getHistory();
+  }
 
 
 }

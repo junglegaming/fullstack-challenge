@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/generated"
+import { PrismaClient } from "../generated"
 import { Wallet } from "../domain/wallet.entity"
 import { WalletRepository } from "../domain/wallet.repository"
 import { Injectable } from "@nestjs/common"

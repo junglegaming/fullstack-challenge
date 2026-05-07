@@ -1,16 +1,16 @@
 import { Injectable } from "@nestjs/common"
-import { Round } from "../../domain/entities/round.entity"
+import { Round } from "../../domain/entities/round.entity" // Importe o repository
+import { GameRepository } from "../../infrastructure/repositories/game.repository"
 
 @Injectable()
 export class RoundService {
   private currentRound: Round | null = null
-  // Criamos um "banco de dados" em memória para o histórico
-  private readonly roundsHistory = new Map<string, Round>();
+
+  constructor(private gameRepository: GameRepository) {} // Injetando o repository
 
   setCurrentRound(round: Round) {
     this.currentRound = round
-    // Salva no histórico assim que a rodada é criada
-    this.roundsHistory.set(round.id, round);
+    // Nota: A persistência agora é feita pelo GameEngine chamando o repository.createRound
   }
 
   getCurrentRound(): Round {
@@ -20,8 +20,22 @@ export class RoundService {
     return this.currentRound
   }
 
-  // MÉTODO QUE O CONTROLLER VAI USAR:
-  async getRoundById(id: string): Promise<Round | undefined> {
-    return this.roundsHistory.get(id);
+  // AGORA ELE É REALMENTE ASSÍNCRONO E BUSCA NO BANCO
+  async getRoundById(id: string): Promise<any> {
+    // 1. Tenta buscar no banco de dados
+    const roundFromDb = await this.gameRepository.findRoundById(id);
+    
+    if (roundFromDb) {
+      return roundFromDb;
+    }
+
+    // 2. Fallback: Se por algum motivo não estiver no banco mas estiver na memória
+    // (Opcional se você quiser manter o Map, mas o banco é a fonte da verdade)
+    return undefined;
   }
+
+  async getHistory() {
+  // O Service atua como um "garçom": ele leva o pedido do controller até o repositório
+  return await this.gameRepository.getRecentRounds();
+}
 }

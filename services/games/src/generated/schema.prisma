@@ -14,22 +14,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Tabela que armazena cada rodada do Crash
 model Round {
-  id         String   @id @default(uuid())
-  crashPoint Float // O valor onde o gráfico "quebrou"
-  status     String   @default("BETTING") // BETTING, IN_PROGRESS, CRASHED
-  createdAt  DateTime @default(now())
-  bets       Bet[] // Relacionamento com as apostas
+  id             String   @id @default(uuid())
+  crashPoint     Float
+  serverSeed     String // ✅ Adicionado para auditoria
+  serverSeedHash String // ✅ Adicionado para transparência inicial
+  status         String   @default("BETTING")
+  createdAt      DateTime @default(now())
+  bets           Bet[]
 }
 
-// Tabela que armazena as apostas dos jogadores
 model Bet {
-  id        String   @id @default(uuid())
-  playerId  String
-  amount    BigInt // Valor da aposta (usando BigInt para precisão)
-  status    String   @default("PENDING") // PENDING, WON, LOST
-  roundId   String
-  round     Round    @relation(fields: [roundId], references: [id])
-  createdAt DateTime @default(now())
+  id                String   @id @default(uuid())
+  playerId          String
+  amount            BigInt
+  payout            BigInt? // ✅ Quanto o player ganhou (null se perdeu)
+  cashoutMultiplier Float? // ✅ Em que multiplicador ele saiu
+  status            String   @default("PENDING")
+  roundId           String
+  round             Round    @relation(fields: [roundId], references: [id])
+  createdAt         DateTime @default(now())
 }

@@ -1,3 +1,4 @@
+import { GameRepository } from "@/infrastructure/repositories/game.repository";
 import { Round } from "../domain/entities/round.entity"
 import { RoundStatus } from "../domain/enum/round-status.enum"
 import { IGameEmitter } from "./interfaces/game-emitter.interface";
@@ -12,12 +13,13 @@ export class GameEngine {
   private currentMultiplier = 1;
   private activeBets = new Map<string, bigint>();
   
-  // Aqui guardaremos quem vai emitir os sons/eventos (será o Gateway)
   private emitter: IGameEmitter | null = null;
 
-  constructor(private roundService: RoundService) {}
+  constructor(
+    private roundService: RoundService,
+    private gameRepository: GameRepository
+  ) {}
 
-  // Método para o Gateway se registrar como o emissor oficial
   setEmitter(emitter: IGameEmitter) {
     this.emitter = emitter;
   }
@@ -48,20 +50,25 @@ export class GameEngine {
     return { playerId, paidMultiplier: multiplier, profit };
   }
 
-  private startBettingPhase() {
+private async startBettingPhase() { 
   this.activeBets.clear();
 
-  // 1. Gera a semente (Importante usar o crypto do Node aqui)
   const serverSeed = crypto.randomBytes(32).toString('hex');
-
-  // 2. USA A ENTIDADE! (É aqui que o erro morre)
-  // O Round.create já vai calcular o crashPoint e o Hash internamente
   this.currentRound = Round.create(crypto.randomUUID(), serverSeed);
 
-  console.log(`🟡 Rodada Criada: ${this.currentRound.id}`);
-  console.log(`🎯 O Crash será em: ${this.currentRound.crashPoint}x`); // Confira se aqui aparece um número variado!
+  // ✅ ADICIONE ESSA LINHA AQUI! 
+  // O Service precisa saber da rodada AGORA para os UseCases funcionarem.
+  this.roundService.setCurrentRound(this.currentRound);
 
-  // 3. Avisa o Gateway
+  console.log(`🟡 Rodada Criada: ${this.currentRound.id}`);
+  
+  try {
+    await this.gameRepository.createRound(this.currentRound);
+    console.log(`💾 Rodada persistida com sucesso!`);
+  } catch (error) {
+    console.error('❌ Erro ao persistir rodada:', error);
+  }
+
   this.emitter?.emitRoundStarted(this.currentRound.id, this.currentRound.serverSeedHash);
 
   setTimeout(() => this.startRound(), 10000);
@@ -98,10 +105,12 @@ export class GameEngine {
   }, 100);
 }
 
-  private crashRound() {
+  private async crashRound() {
   if (!this.currentRound) return;
   
   this.currentRound.crash();
+  
+  await this.gameRepository.markPendingBetsAsLost(this.currentRound.id);
 
   this.roundService.setCurrentRound(this.currentRound);
   

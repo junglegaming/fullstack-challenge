@@ -1010,6 +1010,8 @@ export namespace Prisma {
   export type RoundMinAggregateOutputType = {
     id: string | null
     crashPoint: number | null
+    serverSeed: string | null
+    serverSeedHash: string | null
     status: string | null
     createdAt: Date | null
   }
@@ -1017,6 +1019,8 @@ export namespace Prisma {
   export type RoundMaxAggregateOutputType = {
     id: string | null
     crashPoint: number | null
+    serverSeed: string | null
+    serverSeedHash: string | null
     status: string | null
     createdAt: Date | null
   }
@@ -1024,6 +1028,8 @@ export namespace Prisma {
   export type RoundCountAggregateOutputType = {
     id: number
     crashPoint: number
+    serverSeed: number
+    serverSeedHash: number
     status: number
     createdAt: number
     _all: number
@@ -1041,6 +1047,8 @@ export namespace Prisma {
   export type RoundMinAggregateInputType = {
     id?: true
     crashPoint?: true
+    serverSeed?: true
+    serverSeedHash?: true
     status?: true
     createdAt?: true
   }
@@ -1048,6 +1056,8 @@ export namespace Prisma {
   export type RoundMaxAggregateInputType = {
     id?: true
     crashPoint?: true
+    serverSeed?: true
+    serverSeedHash?: true
     status?: true
     createdAt?: true
   }
@@ -1055,6 +1065,8 @@ export namespace Prisma {
   export type RoundCountAggregateInputType = {
     id?: true
     crashPoint?: true
+    serverSeed?: true
+    serverSeedHash?: true
     status?: true
     createdAt?: true
     _all?: true
@@ -1149,6 +1161,8 @@ export namespace Prisma {
   export type RoundGroupByOutputType = {
     id: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status: string
     createdAt: Date
     _count: RoundCountAggregateOutputType | null
@@ -1175,6 +1189,8 @@ export namespace Prisma {
   export type RoundSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     crashPoint?: boolean
+    serverSeed?: boolean
+    serverSeedHash?: boolean
     status?: boolean
     createdAt?: boolean
     bets?: boolean | Round$betsArgs<ExtArgs>
@@ -1184,6 +1200,8 @@ export namespace Prisma {
   export type RoundSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     crashPoint?: boolean
+    serverSeed?: boolean
+    serverSeedHash?: boolean
     status?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["round"]>
@@ -1191,6 +1209,8 @@ export namespace Prisma {
   export type RoundSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     crashPoint?: boolean
+    serverSeed?: boolean
+    serverSeedHash?: boolean
     status?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["round"]>
@@ -1198,11 +1218,13 @@ export namespace Prisma {
   export type RoundSelectScalar = {
     id?: boolean
     crashPoint?: boolean
+    serverSeed?: boolean
+    serverSeedHash?: boolean
     status?: boolean
     createdAt?: boolean
   }
 
-  export type RoundOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "crashPoint" | "status" | "createdAt", ExtArgs["result"]["round"]>
+  export type RoundOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "crashPoint" | "serverSeed" | "serverSeedHash" | "status" | "createdAt", ExtArgs["result"]["round"]>
   export type RoundInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     bets?: boolean | Round$betsArgs<ExtArgs>
     _count?: boolean | RoundCountOutputTypeDefaultArgs<ExtArgs>
@@ -1218,6 +1240,8 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       crashPoint: number
+      serverSeed: string
+      serverSeedHash: string
       status: string
       createdAt: Date
     }, ExtArgs["result"]["round"]>
@@ -1646,6 +1670,8 @@ export namespace Prisma {
   interface RoundFieldRefs {
     readonly id: FieldRef<"Round", 'String'>
     readonly crashPoint: FieldRef<"Round", 'Float'>
+    readonly serverSeed: FieldRef<"Round", 'String'>
+    readonly serverSeedHash: FieldRef<"Round", 'String'>
     readonly status: FieldRef<"Round", 'String'>
     readonly createdAt: FieldRef<"Round", 'DateTime'>
   }
@@ -2080,16 +2106,22 @@ export namespace Prisma {
 
   export type BetAvgAggregateOutputType = {
     amount: number | null
+    payout: number | null
+    cashoutMultiplier: number | null
   }
 
   export type BetSumAggregateOutputType = {
     amount: bigint | null
+    payout: bigint | null
+    cashoutMultiplier: number | null
   }
 
   export type BetMinAggregateOutputType = {
     id: string | null
     playerId: string | null
     amount: bigint | null
+    payout: bigint | null
+    cashoutMultiplier: number | null
     status: string | null
     roundId: string | null
     createdAt: Date | null
@@ -2099,6 +2131,8 @@ export namespace Prisma {
     id: string | null
     playerId: string | null
     amount: bigint | null
+    payout: bigint | null
+    cashoutMultiplier: number | null
     status: string | null
     roundId: string | null
     createdAt: Date | null
@@ -2108,6 +2142,8 @@ export namespace Prisma {
     id: number
     playerId: number
     amount: number
+    payout: number
+    cashoutMultiplier: number
     status: number
     roundId: number
     createdAt: number
@@ -2117,16 +2153,22 @@ export namespace Prisma {
 
   export type BetAvgAggregateInputType = {
     amount?: true
+    payout?: true
+    cashoutMultiplier?: true
   }
 
   export type BetSumAggregateInputType = {
     amount?: true
+    payout?: true
+    cashoutMultiplier?: true
   }
 
   export type BetMinAggregateInputType = {
     id?: true
     playerId?: true
     amount?: true
+    payout?: true
+    cashoutMultiplier?: true
     status?: true
     roundId?: true
     createdAt?: true
@@ -2136,6 +2178,8 @@ export namespace Prisma {
     id?: true
     playerId?: true
     amount?: true
+    payout?: true
+    cashoutMultiplier?: true
     status?: true
     roundId?: true
     createdAt?: true
@@ -2145,6 +2189,8 @@ export namespace Prisma {
     id?: true
     playerId?: true
     amount?: true
+    payout?: true
+    cashoutMultiplier?: true
     status?: true
     roundId?: true
     createdAt?: true
@@ -2241,6 +2287,8 @@ export namespace Prisma {
     id: string
     playerId: string
     amount: bigint
+    payout: bigint | null
+    cashoutMultiplier: number | null
     status: string
     roundId: string
     createdAt: Date
@@ -2269,6 +2317,8 @@ export namespace Prisma {
     id?: boolean
     playerId?: boolean
     amount?: boolean
+    payout?: boolean
+    cashoutMultiplier?: boolean
     status?: boolean
     roundId?: boolean
     createdAt?: boolean
@@ -2279,6 +2329,8 @@ export namespace Prisma {
     id?: boolean
     playerId?: boolean
     amount?: boolean
+    payout?: boolean
+    cashoutMultiplier?: boolean
     status?: boolean
     roundId?: boolean
     createdAt?: boolean
@@ -2289,6 +2341,8 @@ export namespace Prisma {
     id?: boolean
     playerId?: boolean
     amount?: boolean
+    payout?: boolean
+    cashoutMultiplier?: boolean
     status?: boolean
     roundId?: boolean
     createdAt?: boolean
@@ -2299,12 +2353,14 @@ export namespace Prisma {
     id?: boolean
     playerId?: boolean
     amount?: boolean
+    payout?: boolean
+    cashoutMultiplier?: boolean
     status?: boolean
     roundId?: boolean
     createdAt?: boolean
   }
 
-  export type BetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "playerId" | "amount" | "status" | "roundId" | "createdAt", ExtArgs["result"]["bet"]>
+  export type BetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "playerId" | "amount" | "payout" | "cashoutMultiplier" | "status" | "roundId" | "createdAt", ExtArgs["result"]["bet"]>
   export type BetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     round?: boolean | RoundDefaultArgs<ExtArgs>
   }
@@ -2324,6 +2380,8 @@ export namespace Prisma {
       id: string
       playerId: string
       amount: bigint
+      payout: bigint | null
+      cashoutMultiplier: number | null
       status: string
       roundId: string
       createdAt: Date
@@ -2754,6 +2812,8 @@ export namespace Prisma {
     readonly id: FieldRef<"Bet", 'String'>
     readonly playerId: FieldRef<"Bet", 'String'>
     readonly amount: FieldRef<"Bet", 'BigInt'>
+    readonly payout: FieldRef<"Bet", 'BigInt'>
+    readonly cashoutMultiplier: FieldRef<"Bet", 'Float'>
     readonly status: FieldRef<"Bet", 'String'>
     readonly roundId: FieldRef<"Bet", 'String'>
     readonly createdAt: FieldRef<"Bet", 'DateTime'>
@@ -3176,6 +3236,8 @@ export namespace Prisma {
   export const RoundScalarFieldEnum: {
     id: 'id',
     crashPoint: 'crashPoint',
+    serverSeed: 'serverSeed',
+    serverSeedHash: 'serverSeedHash',
     status: 'status',
     createdAt: 'createdAt'
   };
@@ -3187,6 +3249,8 @@ export namespace Prisma {
     id: 'id',
     playerId: 'playerId',
     amount: 'amount',
+    payout: 'payout',
+    cashoutMultiplier: 'cashoutMultiplier',
     status: 'status',
     roundId: 'roundId',
     createdAt: 'createdAt'
@@ -3209,6 +3273,14 @@ export namespace Prisma {
   };
 
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+  export const NullsOrder: {
+    first: 'first',
+    last: 'last'
+  };
+
+  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
   /**
@@ -3295,6 +3367,8 @@ export namespace Prisma {
     NOT?: RoundWhereInput | RoundWhereInput[]
     id?: StringFilter<"Round"> | string
     crashPoint?: FloatFilter<"Round"> | number
+    serverSeed?: StringFilter<"Round"> | string
+    serverSeedHash?: StringFilter<"Round"> | string
     status?: StringFilter<"Round"> | string
     createdAt?: DateTimeFilter<"Round"> | Date | string
     bets?: BetListRelationFilter
@@ -3303,6 +3377,8 @@ export namespace Prisma {
   export type RoundOrderByWithRelationInput = {
     id?: SortOrder
     crashPoint?: SortOrder
+    serverSeed?: SortOrder
+    serverSeedHash?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     bets?: BetOrderByRelationAggregateInput
@@ -3314,6 +3390,8 @@ export namespace Prisma {
     OR?: RoundWhereInput[]
     NOT?: RoundWhereInput | RoundWhereInput[]
     crashPoint?: FloatFilter<"Round"> | number
+    serverSeed?: StringFilter<"Round"> | string
+    serverSeedHash?: StringFilter<"Round"> | string
     status?: StringFilter<"Round"> | string
     createdAt?: DateTimeFilter<"Round"> | Date | string
     bets?: BetListRelationFilter
@@ -3322,6 +3400,8 @@ export namespace Prisma {
   export type RoundOrderByWithAggregationInput = {
     id?: SortOrder
     crashPoint?: SortOrder
+    serverSeed?: SortOrder
+    serverSeedHash?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
     _count?: RoundCountOrderByAggregateInput
@@ -3337,6 +3417,8 @@ export namespace Prisma {
     NOT?: RoundScalarWhereWithAggregatesInput | RoundScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Round"> | string
     crashPoint?: FloatWithAggregatesFilter<"Round"> | number
+    serverSeed?: StringWithAggregatesFilter<"Round"> | string
+    serverSeedHash?: StringWithAggregatesFilter<"Round"> | string
     status?: StringWithAggregatesFilter<"Round"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Round"> | Date | string
   }
@@ -3348,6 +3430,8 @@ export namespace Prisma {
     id?: StringFilter<"Bet"> | string
     playerId?: StringFilter<"Bet"> | string
     amount?: BigIntFilter<"Bet"> | bigint | number
+    payout?: BigIntNullableFilter<"Bet"> | bigint | number | null
+    cashoutMultiplier?: FloatNullableFilter<"Bet"> | number | null
     status?: StringFilter<"Bet"> | string
     roundId?: StringFilter<"Bet"> | string
     createdAt?: DateTimeFilter<"Bet"> | Date | string
@@ -3358,6 +3442,8 @@ export namespace Prisma {
     id?: SortOrder
     playerId?: SortOrder
     amount?: SortOrder
+    payout?: SortOrderInput | SortOrder
+    cashoutMultiplier?: SortOrderInput | SortOrder
     status?: SortOrder
     roundId?: SortOrder
     createdAt?: SortOrder
@@ -3371,6 +3457,8 @@ export namespace Prisma {
     NOT?: BetWhereInput | BetWhereInput[]
     playerId?: StringFilter<"Bet"> | string
     amount?: BigIntFilter<"Bet"> | bigint | number
+    payout?: BigIntNullableFilter<"Bet"> | bigint | number | null
+    cashoutMultiplier?: FloatNullableFilter<"Bet"> | number | null
     status?: StringFilter<"Bet"> | string
     roundId?: StringFilter<"Bet"> | string
     createdAt?: DateTimeFilter<"Bet"> | Date | string
@@ -3381,6 +3469,8 @@ export namespace Prisma {
     id?: SortOrder
     playerId?: SortOrder
     amount?: SortOrder
+    payout?: SortOrderInput | SortOrder
+    cashoutMultiplier?: SortOrderInput | SortOrder
     status?: SortOrder
     roundId?: SortOrder
     createdAt?: SortOrder
@@ -3398,6 +3488,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Bet"> | string
     playerId?: StringWithAggregatesFilter<"Bet"> | string
     amount?: BigIntWithAggregatesFilter<"Bet"> | bigint | number
+    payout?: BigIntNullableWithAggregatesFilter<"Bet"> | bigint | number | null
+    cashoutMultiplier?: FloatNullableWithAggregatesFilter<"Bet"> | number | null
     status?: StringWithAggregatesFilter<"Bet"> | string
     roundId?: StringWithAggregatesFilter<"Bet"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Bet"> | Date | string
@@ -3406,6 +3498,8 @@ export namespace Prisma {
   export type RoundCreateInput = {
     id?: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status?: string
     createdAt?: Date | string
     bets?: BetCreateNestedManyWithoutRoundInput
@@ -3414,6 +3508,8 @@ export namespace Prisma {
   export type RoundUncheckedCreateInput = {
     id?: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status?: string
     createdAt?: Date | string
     bets?: BetUncheckedCreateNestedManyWithoutRoundInput
@@ -3422,6 +3518,8 @@ export namespace Prisma {
   export type RoundUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bets?: BetUpdateManyWithoutRoundNestedInput
@@ -3430,6 +3528,8 @@ export namespace Prisma {
   export type RoundUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bets?: BetUncheckedUpdateManyWithoutRoundNestedInput
@@ -3438,6 +3538,8 @@ export namespace Prisma {
   export type RoundCreateManyInput = {
     id?: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status?: string
     createdAt?: Date | string
   }
@@ -3445,6 +3547,8 @@ export namespace Prisma {
   export type RoundUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3452,6 +3556,8 @@ export namespace Prisma {
   export type RoundUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3460,6 +3566,8 @@ export namespace Prisma {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     createdAt?: Date | string
     round: RoundCreateNestedOneWithoutBetsInput
@@ -3469,6 +3577,8 @@ export namespace Prisma {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     roundId: string
     createdAt?: Date | string
@@ -3478,6 +3588,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     round?: RoundUpdateOneRequiredWithoutBetsNestedInput
@@ -3487,6 +3599,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     roundId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3496,6 +3610,8 @@ export namespace Prisma {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     roundId: string
     createdAt?: Date | string
@@ -3505,6 +3621,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -3513,6 +3631,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     roundId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3568,6 +3688,8 @@ export namespace Prisma {
   export type RoundCountOrderByAggregateInput = {
     id?: SortOrder
     crashPoint?: SortOrder
+    serverSeed?: SortOrder
+    serverSeedHash?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
   }
@@ -3579,6 +3701,8 @@ export namespace Prisma {
   export type RoundMaxOrderByAggregateInput = {
     id?: SortOrder
     crashPoint?: SortOrder
+    serverSeed?: SortOrder
+    serverSeedHash?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
   }
@@ -3586,6 +3710,8 @@ export namespace Prisma {
   export type RoundMinOrderByAggregateInput = {
     id?: SortOrder
     crashPoint?: SortOrder
+    serverSeed?: SortOrder
+    serverSeedHash?: SortOrder
     status?: SortOrder
     createdAt?: SortOrder
   }
@@ -3653,15 +3779,44 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type BigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type RoundScalarRelationFilter = {
     is?: RoundWhereInput
     isNot?: RoundWhereInput
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
   }
 
   export type BetCountOrderByAggregateInput = {
     id?: SortOrder
     playerId?: SortOrder
     amount?: SortOrder
+    payout?: SortOrder
+    cashoutMultiplier?: SortOrder
     status?: SortOrder
     roundId?: SortOrder
     createdAt?: SortOrder
@@ -3669,12 +3824,16 @@ export namespace Prisma {
 
   export type BetAvgOrderByAggregateInput = {
     amount?: SortOrder
+    payout?: SortOrder
+    cashoutMultiplier?: SortOrder
   }
 
   export type BetMaxOrderByAggregateInput = {
     id?: SortOrder
     playerId?: SortOrder
     amount?: SortOrder
+    payout?: SortOrder
+    cashoutMultiplier?: SortOrder
     status?: SortOrder
     roundId?: SortOrder
     createdAt?: SortOrder
@@ -3684,6 +3843,8 @@ export namespace Prisma {
     id?: SortOrder
     playerId?: SortOrder
     amount?: SortOrder
+    payout?: SortOrder
+    cashoutMultiplier?: SortOrder
     status?: SortOrder
     roundId?: SortOrder
     createdAt?: SortOrder
@@ -3691,6 +3852,8 @@ export namespace Prisma {
 
   export type BetSumOrderByAggregateInput = {
     amount?: SortOrder
+    payout?: SortOrder
+    cashoutMultiplier?: SortOrder
   }
 
   export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -3707,6 +3870,38 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter<$PrismaModel>
     _min?: NestedBigIntFilter<$PrismaModel>
     _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type BigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type BetCreateNestedManyWithoutRoundInput = {
@@ -3779,6 +3974,22 @@ export namespace Prisma {
     decrement?: bigint | number
     multiply?: bigint | number
     divide?: bigint | number
+  }
+
+  export type NullableBigIntFieldUpdateOperationsInput = {
+    set?: bigint | number | null
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type RoundUpdateOneRequiredWithoutBetsNestedInput = {
@@ -3894,6 +4105,28 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type NestedBigIntNullableFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableFilter<$PrismaModel> | bigint | number | null
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
@@ -3910,10 +4143,55 @@ export namespace Prisma {
     _max?: NestedBigIntFilter<$PrismaModel>
   }
 
+  export type NestedBigIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel> | null
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel> | null
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntNullableWithAggregatesFilter<$PrismaModel> | bigint | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedBigIntNullableFilter<$PrismaModel>
+    _min?: NestedBigIntNullableFilter<$PrismaModel>
+    _max?: NestedBigIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
   export type BetCreateWithoutRoundInput = {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     createdAt?: Date | string
   }
@@ -3922,6 +4200,8 @@ export namespace Prisma {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     createdAt?: Date | string
   }
@@ -3959,6 +4239,8 @@ export namespace Prisma {
     id?: StringFilter<"Bet"> | string
     playerId?: StringFilter<"Bet"> | string
     amount?: BigIntFilter<"Bet"> | bigint | number
+    payout?: BigIntNullableFilter<"Bet"> | bigint | number | null
+    cashoutMultiplier?: FloatNullableFilter<"Bet"> | number | null
     status?: StringFilter<"Bet"> | string
     roundId?: StringFilter<"Bet"> | string
     createdAt?: DateTimeFilter<"Bet"> | Date | string
@@ -3967,6 +4249,8 @@ export namespace Prisma {
   export type RoundCreateWithoutBetsInput = {
     id?: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status?: string
     createdAt?: Date | string
   }
@@ -3974,6 +4258,8 @@ export namespace Prisma {
   export type RoundUncheckedCreateWithoutBetsInput = {
     id?: string
     crashPoint: number
+    serverSeed: string
+    serverSeedHash: string
     status?: string
     createdAt?: Date | string
   }
@@ -3997,6 +4283,8 @@ export namespace Prisma {
   export type RoundUpdateWithoutBetsInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4004,6 +4292,8 @@ export namespace Prisma {
   export type RoundUncheckedUpdateWithoutBetsInput = {
     id?: StringFieldUpdateOperationsInput | string
     crashPoint?: FloatFieldUpdateOperationsInput | number
+    serverSeed?: StringFieldUpdateOperationsInput | string
+    serverSeedHash?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4012,6 +4302,8 @@ export namespace Prisma {
     id?: string
     playerId: string
     amount: bigint | number
+    payout?: bigint | number | null
+    cashoutMultiplier?: number | null
     status?: string
     createdAt?: Date | string
   }
@@ -4020,6 +4312,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4028,6 +4322,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4036,6 +4332,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
     amount?: BigIntFieldUpdateOperationsInput | bigint | number
+    payout?: NullableBigIntFieldUpdateOperationsInput | bigint | number | null
+    cashoutMultiplier?: NullableFloatFieldUpdateOperationsInput | number | null
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

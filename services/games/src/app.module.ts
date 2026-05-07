@@ -9,6 +9,7 @@ import { PrismaClient } from "./generated";
 import { RabbitMQClient } from "./application/rabbitmq.client";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { JwtStrategy } from "@crash/auth"
+import { GameRepository } from "./infrastructure/repositories/game.repository";
 
 
 
@@ -35,6 +36,7 @@ import { JwtStrategy } from "@crash/auth"
   PrismaClient,
   GameGateway,
   GameEngine,
+  GameRepository,
   RoundService,
   PlaceBetUseCase,
   CashoutUseCase,

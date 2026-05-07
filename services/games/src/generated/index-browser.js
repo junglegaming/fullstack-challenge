@@ -120,6 +120,8 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.RoundScalarFieldEnum = {
   id: 'id',
   crashPoint: 'crashPoint',
+  serverSeed: 'serverSeed',
+  serverSeedHash: 'serverSeedHash',
   status: 'status',
   createdAt: 'createdAt'
 };
@@ -128,6 +130,8 @@ exports.Prisma.BetScalarFieldEnum = {
   id: 'id',
   playerId: 'playerId',
   amount: 'amount',
+  payout: 'payout',
+  cashoutMultiplier: 'cashoutMultiplier',
   status: 'status',
   roundId: 'roundId',
   createdAt: 'createdAt'
@@ -141,6 +145,11 @@ exports.Prisma.SortOrder = {
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
 };
 
 
