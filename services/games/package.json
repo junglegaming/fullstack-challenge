@@ -15,6 +15,7 @@
     "@nestjs/platform-express": "^11.1.17",
     "@nestjs/platform-socket.io": "^11.1.19",
     "@nestjs/websockets": "^11.1.19",
+    "@prisma/client": "6.2.1",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^1.0.6",
     "reflect-metadata": "^0.2.2",
@@ -23,7 +24,8 @@
   },
   "devDependencies": {
     "bun-types": "latest",
-    "prisma": "^6.19.3",
+    "dotenv": "^17.4.2",
+    "prisma": "6.2.1",
     "typescript": "^5.8.3"
   }
 }

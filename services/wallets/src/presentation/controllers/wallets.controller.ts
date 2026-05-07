@@ -18,7 +18,7 @@ export class WalletsController {
   
   @Post()
   async create(@Req() req: AuthenticatedRequest){
-    const playerId = "test-player1"
+    const playerId = "test-player"
 
     const wallet = await this.createWallet.execute(playerId)
 
@@ -34,8 +34,8 @@ export class WalletsController {
 
     const wallet = await this.getWallet.execute(playerId)
 
+
     return {
-      playerId: wallet.playerId,
       balance: wallet.balance.toString(),
     }
   }

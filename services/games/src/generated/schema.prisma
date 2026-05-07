@@ -17,17 +17,17 @@ datasource db {
 // Tabela que armazena cada rodada do Crash
 model Round {
   id         String   @id @default(uuid())
-  crashPoint Float    // O valor onde o gráfico "quebrou"
+  crashPoint Float // O valor onde o gráfico "quebrou"
   status     String   @default("BETTING") // BETTING, IN_PROGRESS, CRASHED
   createdAt  DateTime @default(now())
-  bets       Bet[]    // Relacionamento com as apostas
+  bets       Bet[] // Relacionamento com as apostas
 }
 
 // Tabela que armazena as apostas dos jogadores
 model Bet {
   id        String   @id @default(uuid())
   playerId  String
-  amount    BigInt   // Valor da aposta (usando BigInt para precisão)
+  amount    BigInt // Valor da aposta (usando BigInt para precisão)
   status    String   @default("PENDING") // PENDING, WON, LOST
   roundId   String
   round     Round    @relation(fields: [roundId], references: [id])

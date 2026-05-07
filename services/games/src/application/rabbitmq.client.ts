@@ -22,7 +22,7 @@ export class RabbitMQClient {
     playerId: string,
     amount: bigint,
   ) {
-    this.client.emit('cashout', {
+    this.client.emit('cashout_done', {
       playerId,
       amount: amount.toString(),
     })

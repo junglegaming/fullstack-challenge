@@ -34,26 +34,24 @@ export class WalletConsumer {
     }
   }
 
-  @EventPattern('cashout_done') // O nome do evento deve ser o mesmo que o Game Service emitir
-async handleCashout(@Payload() data: CashoutEvent) {
-    this.logger.log(`Processando prêmio de ${data.amount} para o jogador ${data.playerId}`);
+ @EventPattern('cashout_done')
+async handleCashout(data: any) {
+  console.log('CASHOUT EVENT', data)
 
-    try {
-        const wallet = await this.repo.findByPlayerId(data.playerId);
-        
-        if (!wallet) {
-        this.logger.error(`Carteira não encontrada para crédito: ${data.playerId}`);
-        return;
-        }
+  const wallet = await this.repo.findByPlayerId(
+    data.playerId,
+  )
 
-    // A mágica do BigInt novamente: Crédito sem perda de precisão
-    wallet.credit(BigInt(data.amount));
+  if (!wallet) {
+    throw new Error('WALLET_NOT_FOUND')
+  }
 
-    await this.repo.save(wallet);
-    
-    this.logger.log(`Crédito de ${data.amount} realizado com sucesso!`);
-  } catch (error) {
+  wallet.credit(BigInt(data.amount))
+
+  await this.repo.save(wallet)
+
+  console.log('BALANCE UPDATED')
+} catch () {
     this.logger.error(`Erro ao processar crédito de cashout`);
   }
-}
 }

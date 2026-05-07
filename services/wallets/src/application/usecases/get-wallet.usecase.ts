@@ -11,7 +11,7 @@ export class GetWalletUseCase {
     if (!wallet) {
       throw new Error('WALLET_NOT_FOUND')
     }
-
+    
     return wallet
   }
 }
