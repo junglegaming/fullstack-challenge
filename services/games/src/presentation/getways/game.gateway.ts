@@ -1,6 +1,6 @@
 import { OnModuleInit } from '@nestjs/common';
 import { GameEngine } from '../../application/game.engine';
-import { WebSocketGateway, WebSocketServer} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 
 @WebSocketGateway({
@@ -10,10 +10,12 @@ export class GameGateway implements OnModuleInit {
   @WebSocketServer()
   server!: Server;
 
+  // 1. O NestJS injeta a Engine aqui com todas as dependências dela (RabbitMQ, etc)
+  constructor(private readonly engine: GameEngine) {}
+
   onModuleInit() {
-    // Instancia a engine e passa este gateway para ela
-    const engine = new GameEngine(this);
-    engine.start();
+    // 2. Não usamos o 'new'. Usamos a instância que o Nest injetou.
+    this.engine.start();
   }
 
   emitRoundStarted(roundId: string) {

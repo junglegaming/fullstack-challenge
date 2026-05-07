@@ -5,7 +5,10 @@ export class GameEngine {
   private currentRound: Round | null = null
   private currentMultiplier = 1
 
-  constructor(private gateway: GameGateway) {}
+  constructor(
+    
+    private gateway: GameGateway
+  ) {}
   start() {
     this.startBettingPhase()
   }
@@ -20,7 +23,7 @@ export class GameEngine {
       crashPoint,
     )
 
-    this.gateway.emitRoundStarted(this.currentRound.id)
+    this.gateway?.emitRoundStarted(this.currentRound.id)
 
     setTimeout(() => {
       this.startRound()
@@ -43,7 +46,7 @@ export class GameEngine {
         `Multiplier: ${this.currentMultiplier.toFixed(2)}x`,
       )
 
-      this.gateway.emitMultiplier(this.currentMultiplier)
+      this.gateway?.emitMultiplier(this.currentMultiplier)
 
       if (
         this.currentMultiplier >=
@@ -65,7 +68,7 @@ export class GameEngine {
       `💥 Crashed at ${this.currentMultiplier.toFixed(2)}x`,
     )
 
-    this.gateway.emitCrash(this.currentMultiplier)
+    this.gateway?.emitCrash(this.currentMultiplier)
     
     setTimeout(() => {
       this.startBettingPhase()
