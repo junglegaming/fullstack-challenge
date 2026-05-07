@@ -209,7 +209,7 @@ bun run docker:up
 # Frontend:     http://localhost:3000
 # Kong API:     http://localhost:8000
 # Kong Admin:   http://localhost:8001
-# Keycloak:    http://localhost:8080 (admin/admin)
+# Keycloak:     http://localhost:8080 (admin/admin)
 # RabbitMQ:     http://localhost:15672 (guest/guest)
 ```
 
@@ -383,5 +383,5 @@ Este projeto é uma implementação do desafio técnico da Jungle Gaming.
 
 ---
 
-**Desenvolvido por**: Lucas de Matos Vieira
+**Desenvolvido por**: Lucas de Matos Viana de Oliveira
 **Repositório**: [GitHub - Lucas-de-Matos-junglegamingfullstack-challenge](https://github.com/Sacul-Lucas/Lucas-de-Matos-junglegamingfullstack-challenge)
