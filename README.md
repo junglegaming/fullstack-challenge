@@ -44,25 +44,25 @@ O Crash Game é um jogo de cassino multiplayer em tempo real: um multiplicador s
 
 ```
                         ┌──────────────────────────┐
-                        │        Frontend           │
-                        │   (Next.js + Tailwind)  │
-                        └─────┬────────────┬─────┘
+                        │        Frontend          │
+                        │   (Next.js + Tailwind)   │
+                        └─────┬────────────┬───────┘
                            HTTP/REST    WebSocket
                               │            │
                         ┌─────▼────────────▼─────┐
-                        │         Kong               │
-                        │      (API Gateway)         │
+                        │         Kong           │
+                        │      (API Gateway)     │
                         └─────┬────────────┬─────┘
                               │            │
                     ┌─────────▼──┐   ┌────▼──────────┐
-                    │   Game     │   │   Wallet          │
-                    │  Service   │   │   Service        │
-                    │  (NestJS)  │   │   (NestJS)      │
-                    └──┬─────┬──┘   └──────┬─────────┘
-                       │     └──────┬──────┘
-                  ┌────▼────┐  ┌────▼──────────┐
-                  │PostgreSQL│  │ RabbitMQ         │
-                  └─────────┘  └─────────────────┘
+                    │   Game     │   │   Wallet      │
+                    │  Service   │   │   Service     │
+                    │  (NestJS)  │   │   (NestJS)    │
+                    └──┬─────┬───┘   └──────┬────────┘
+                       │     └──────┬───────┘
+                  ┌────▼─────┐  ┌────▼──────────┐
+                  │PostgreSQL│  │ RabbitMQ      │
+                  └──────────┘  └───────────────┘
 
               ┌─────────────────┐
               │    Keycloak     │
