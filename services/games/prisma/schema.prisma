@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela que armazena cada rodada do Crash
+model Round {
+  id         String   @id @default(uuid())
+  crashPoint Float    // O valor onde o gráfico "quebrou"
+  status     String   @default("BETTING") // BETTING, IN_PROGRESS, CRASHED
+  createdAt  DateTime @default(now())
+  bets       Bet[]    // Relacionamento com as apostas
+}
+
+// Tabela que armazena as apostas dos jogadores
+model Bet {
+  id        String   @id @default(uuid())
+  playerId  String
+  amount    BigInt   // Valor da aposta (usando BigInt para precisão)
+  status    String   @default("PENDING") // PENDING, WON, LOST
+  roundId   String
+  round     Round    @relation(fields: [roundId], references: [id])
+  createdAt DateTime @default(now())
+}
