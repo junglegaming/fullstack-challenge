@@ -28,6 +28,6 @@
     "src/**/*", 
     "tests/**/*",
     "../../packages/events/**/*" 
-  ],
+, "../../packages/auth/src/jwt.strategy.ts", "../../packages/auth/src/jwt-auth.guard.ts"  ],
   "exclude": ["node_modules", "dist"]
 }

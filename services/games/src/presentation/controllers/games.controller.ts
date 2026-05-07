@@ -1,7 +1,8 @@
-import { Controller, Get, Post } from "@nestjs/common";
+import { Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
 import { PlaceBetUseCase } from "../../application/usecases/place-bet.usecase";
 import { CashoutUseCase } from "../../application/usecases/cashout.usecase";
+import { JwtAuthGuard } from "@crash/auth";
 
 @Controller('games')
 export class GamesController {
@@ -14,10 +15,10 @@ export class GamesController {
   check(): HealthCheckResponseDto {
     return { status: "ok", service: "games" };
   }
-
-   @Post('bet')
-  async placeBet() {
-    const playerId = 'test-player'
+  @UseGuards(JwtAuthGuard)
+  @Post('bet')
+  async placeBet(@Req() req: any) {
+    const playerId = req.user.sub
 
     return this.placeBetUseCase.execute(
       playerId,
@@ -25,9 +26,10 @@ export class GamesController {
     )
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('bet/cashout')
-  async cashout() {
-    const playerId = 'test-player'
+  async cashout(@Req() req: any) {
+    const playerId = req.user.sub
 
     return this.cashoutUseCase.execute(
       playerId,

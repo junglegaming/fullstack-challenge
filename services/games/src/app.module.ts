@@ -8,6 +8,7 @@ import { CashoutUseCase } from "./application/usecases/cashout.usecase";
 import { PrismaClient } from "./generated";
 import { RabbitMQClient } from "./application/rabbitmq.client";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { JwtStrategy } from "@crash/auth"
 
 
 
@@ -30,6 +31,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
   ],
   controllers: [GamesController],
   providers: [
+  JwtStrategy,
   PrismaClient,
   GameGateway,
   GameEngine,

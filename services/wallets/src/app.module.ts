@@ -5,6 +5,7 @@ import { GetWalletUseCase } from "./application/usecases/get-wallet.usecase";
 import { WalletRepositoryImpl } from "./infrastructure/wallet.repository.impl";
 import { WalletConsumer } from "./presentation/wallet.consumer";
 import { PrismaClient } from "./generated";
+import { JwtStrategy } from "../../../packages/auth/src/jwt.strategy";
 
 @Module({
   controllers: [
@@ -12,6 +13,7 @@ import { PrismaClient } from "./generated";
     WalletConsumer
   ],
   providers: [
+  JwtStrategy,
   PrismaClient,
   WalletRepositoryImpl,
   CreateWalletUseCase,
