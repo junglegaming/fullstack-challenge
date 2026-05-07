@@ -10,6 +10,7 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "rootDir": "../../",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -18,10 +19,15 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@crash/events": ["../../packages/events/game.events"]
     },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": [
+    "src/**/*", 
+    "tests/**/*",
+    "../../packages/events/**/*" 
+  ],
   "exclude": ["node_modules", "dist"]
 }

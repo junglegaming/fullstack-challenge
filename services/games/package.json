@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "bun-types": "latest",
+    "prisma": "^6.19.3",
     "typescript": "^5.8.3"
   }
 }
