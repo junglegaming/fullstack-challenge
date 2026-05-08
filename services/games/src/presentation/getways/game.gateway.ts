@@ -9,18 +9,23 @@ export class GameGateway implements OnModuleInit, IGameEmitter {
   @WebSocketServer()
   server!: Server;
 
+
   constructor(private readonly engine: GameEngine) {}
 
-  onModuleInit() {
-    // Aqui fazemos a conexão: a Engine recebe o Gateway como seu "emissor"
+  onModuleInit() {;
+  
+  try {
     this.engine.setEmitter(this);
     this.engine.start();
+  } catch (err) {
+    console.error('❌ RT-LOG: Erro ao iniciar Gateway:', err);
   }
+}
 
   emitRoundStarted(roundId: string, hash: string) {
   this.server.emit('events', {
     type: 'ROUND_STARTED',
-    payload: { roundId, hash } // Agora enviando o hash para o front!
+    payload: { roundId, hash }
   });
 }
 

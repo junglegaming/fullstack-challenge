@@ -27,16 +27,14 @@ export class GameRepository {
   }
 
  async createBet(bet: Bet) {
-  // ⚠️ Importante: Use a desestruturação ou mapeamento manual aqui
   return this.prisma.bet.create({
     data: {
       id: bet.id,
       playerId: bet.playerId,
       roundId: bet.roundId,
       amount: bet.amount,
-      status: bet.status as any, // Forçamos o cast para o Enum do Prisma aceitar
+      status: bet.status as any, 
       
-      // ✅ Preenchemos manualmente o que o Prisma exige e a Entidade não tem
       createdAt: new Date(), 
       payout: null,
       cashoutMultiplier: null,
@@ -48,7 +46,7 @@ export class GameRepository {
   return this.prisma.round.findUnique({
     where: { id },
     include: { 
-      bets: true // Isso já traz as apostas da rodada se você precisar
+      bets: true 
     }
   });
 }
@@ -56,9 +54,15 @@ export class GameRepository {
 async getRecentRounds(limit: number = 20) {
   return this.prisma.round.findMany({
     take: limit,
-    orderBy: { createdAt: 'desc' },
-    // Opcional: mostrar apenas as que já crasharam
-    where: { status: 'CRASHED' } 
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      serverSeedHash: true,
+      crashPoint: true,
+      createdAt: true,
+    },
   });
 }
 
@@ -66,7 +70,7 @@ async updateBetToWon(playerId: string, roundId: string, payout: bigint, multipli
   return this.prisma.bet.updateMany({
     where: {
       playerId,
-      roundId, // ✅ Usar o roundId evita que você atualize apostas de rodadas passadas por erro
+      roundId, 
       status: 'PENDING',
     },
     data: {
@@ -77,16 +81,28 @@ async updateBetToWon(playerId: string, roundId: string, payout: bigint, multipli
   });
 }
 
-// 2. Para o Engine usar quando a rodada der CRASH
 async markPendingBetsAsLost(roundId: string) {
   return this.prisma.bet.updateMany({
     where: {
       roundId,
-      status: 'PENDING', // Quem não sacou a tempo, perdeu
+      status: 'PENDING',
     },
     data: {
       status: 'LOST',
-      payout: 0n, // BigInt zero
+      payout: 0n,
+    },
+  });
+}
+
+async updateUnresolvedBets(roundId: string) {
+  return await this.prisma.bet.updateMany({
+    where: {
+      roundId: roundId,
+      status: 'PENDING',
+    },
+    data: {
+      status: 'LOST',
+      payout: 0,
     },
   });
 }

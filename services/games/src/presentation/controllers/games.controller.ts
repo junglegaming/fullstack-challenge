@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, NotFoundException, Param, Post, Req, UseGuards, Headers as NestHeaders, BadRequestException } from "@nestjs/common";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
 import { PlaceBetUseCase } from "../../application/usecases/place-bet.usecase";
 import { CashoutUseCase } from "../../application/usecases/cashout.usecase";
@@ -13,20 +13,30 @@ export class GamesController {
     private readonly cashoutUseCase: CashoutUseCase,
     private readonly roundService: RoundService,
   ) {}
+
   @Get("health")
   check(): HealthCheckResponseDto {
     return { status: "ok", service: "games" };
   }
-  @UseGuards(JwtAuthGuard)
-  @Post('bet')
-  async placeBet(@Req() req: any) {
-    const playerId = req.user.sub
 
-    return this.placeBetUseCase.execute(
-      playerId,
-      1000n,
-    )
+@Post('bet')
+@UseGuards(JwtAuthGuard)
+async placeBet(
+  @Req() req: any, 
+  @Body() body: { amount: string }, 
+  @NestHeaders('authorization') token: string
+) {
+  console.log('Body recebido:', body);
+
+  if (!body || !body.amount) {
+    throw new BadRequestException('O campo amount é obrigatório no corpo da requisição');
   }
+
+  const amount = BigInt(body.amount);
+  const playerId = req.user.sub;
+
+  return this.placeBetUseCase.execute(playerId, amount, token);
+}
 
   @UseGuards(JwtAuthGuard)
   @Post('bet/cashout')
@@ -37,22 +47,23 @@ export class GamesController {
       playerId,
     )
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('rounds/:id/verify')
 async verify(@Param('id') id: string) {
-  // 1. Busca a rodada no seu banco ou service
   const round = await this.roundService.getRoundById(id);
+
+  const isFinished = !['BETTING', 'IN_PROGRESS'].includes(round.status);
 
   if (!round) {
     throw new NotFoundException('Rodada não encontrada no histórico.');
   }
 
-  // 2. Retorna os dados para a "prova real"
   return {
     game: 'Crash',
     roundId: round.id,
     mathematics: {
-      crashPoint: round.crashPoint,
+      crashPoint: isFinished ? round.crashPoint :  "REVEALED_AFTER_CRASH",
       serverSeed: round.serverSeed,
       serverSeedHash: round.serverSeedHash,
       combinedHashCheck: "SHA256(serverSeed) === serverSeedHash"
@@ -64,9 +75,21 @@ async verify(@Param('id') id: string) {
   @UseGuards(JwtAuthGuard)
   @Get('history')
   async getHistory() {
-    // Muito mais limpo! O controller não precisa saber que o Repository existe.
-    return await this.roundService.getHistory();
+    try {
+      const history = await this.roundService.getHistory();
+      
+      return {
+        success: true,
+        data: history,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Erro ao buscar histórico de rodadas',
+      };
+    }
   }
-
-
 }
+
+
+

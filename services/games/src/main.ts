@@ -17,10 +17,13 @@ async function bootstrap(): Promise<void> {
     },
   });
 
-  await app.startAllMicroservices();
+  
+  
 
   const port = process.env.PORT || 4001;
   await app.listen(port, "0.0.0.0");
+
+  await app.startAllMicroservices();
 
   console.log(`🚀 Games service running on port ${port}`);
 }

@@ -15,14 +15,13 @@ export class CashoutUseCase {
 
   async execute(playerId: string) {
     try {
-      // Repassa a ação para a Engine do jogo, que sabe qual é o multiplicador atual
       const result = await this.gameEngine.cashout(playerId);
 
       const round = this.roundService.getCurrentRound();
 
       await this.gameRepository.updateBetToWon(
         playerId, 
-        round.id, // ✅ Agora temos o round.id para ser específico no banco
+        round.id,
         result.profit, 
         result.paidMultiplier
       );
@@ -32,15 +31,13 @@ export class CashoutUseCase {
       return {
       success: true,
       message: 'Cashout realizado com sucesso',
-      // Aqui você monta o objeto de resposta sem o BigInt bruto
       data: {
         playerId: result.playerId,
         paidMultiplier: result.paidMultiplier,
-        profit: result.profit.toString(), // 🔍 Converte aqui dentro também!
+        profit: result.profit.toString(),
       }
     };
     } catch (error: any) {
-      // Se o jogador tentar dar cashout num jogo que já crashou, a engine deve lançar um erro
       throw new BadRequestException(error.message || 'Não foi possível realizar o cashout');
     }
   }

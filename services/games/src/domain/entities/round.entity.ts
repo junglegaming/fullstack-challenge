@@ -77,7 +77,6 @@ export class Round {
   }
 
   static create(id: string, serverSeed: string): Round {
-    // Aqui você chama as funções que criou no Passo 2 e 3
     const hash = hashServerSeed(serverSeed);
     const multiplier = calculateCrashPoint(serverSeed);
 
