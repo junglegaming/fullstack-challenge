@@ -33,7 +33,10 @@ export class GameGateway implements OnModuleInit, IGameEmitter {
     this.server?.emit('multiplier_update', { multiplier: multiplier.toFixed(2) });
   }
 
-  emitCrash(multiplier: number) {
-    this.server?.emit('round_crashed', { multiplier: multiplier.toFixed(2) });
-  }
+  emitCrash(multiplier: number, serverSeed: string) {
+  this.server?.emit('round_crashed', {
+    crashPoint: multiplier.toFixed(2),
+    serverSeed,
+  })
+}
 }

@@ -1,10 +1,15 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
+import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
+import keycloak from './services/keycloak'
+import './index.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+keycloak
+  .init({
+    onLoad: 'login-required',
+    pkceMethod: 'S256',
+  })
+  .then(() => {
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+      <App />
+    )
+  })
