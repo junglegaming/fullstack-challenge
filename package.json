@@ -7,15 +7,22 @@
     "frontend"
   ],
   "scripts": {
-    "docker:up": "docker compose up",
+    "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
+    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f",
+    
+    "dev": "bunx concurrently -n \"wallet,game,front\" -c \"blue,green,magenta\" \"bun --filter @crash/wallets dev\" \"bun --filter @crash/games dev\" \"bun --filter frontend dev\"",
+    
+    "dev:npm": "concurrently -n \"wallet,game,front\" -c \"blue,green,magenta\" \"npm run dev -w services/wallet-service\" \"npm run dev -w services/game-service\" \"npm run dev -w frontend\"",
+    
+    "start:all": "bun run docker:up && sleep 5 && bun run dev"
   },
   "devDependencies": {
     "@types/bun": "^1.3.13",
     "@types/node": "^25.6.0",
     "@types/passport-jwt": "^4.0.1",
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "concurrently": "^8.2.2" 
   },
   "dependencies": {
     "@nestjs/passport": "^11.0.5",
