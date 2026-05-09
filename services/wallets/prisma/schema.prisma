@@ -16,7 +16,7 @@ datasource db {
 model Wallet{
   id String @id @default(uuid())
   playerId String @unique
-  balance String
+  balance BigInt
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
