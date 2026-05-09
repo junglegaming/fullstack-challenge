@@ -106,4 +106,14 @@ async updateUnresolvedBets(roundId: string) {
     },
   });
 }
+
+async deletePendingBet(playerId: string, roundId: string) {
+  return this.prisma.bet.deleteMany({
+    where: {
+      playerId,
+      roundId,
+      status: 'PENDING', 
+    },
+  });
+}
 }

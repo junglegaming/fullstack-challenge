@@ -1,12 +1,16 @@
-import { Injectable } from "@nestjs/common"
+import { BadRequestException, Injectable } from "@nestjs/common"
 import { Round } from "../../domain/entities/round.entity"
 import { GameRepository } from "../../infrastructure/repositories/game.repository"
+import { GameEngine } from "../game.engine"
 
 @Injectable()
 export class RoundService {
   private currentRound: Round | null = null
 
-  constructor(private gameRepository: GameRepository) {} 
+  constructor(
+    private gameRepository: GameRepository,
+  
+  ) {} 
 
   setCurrentRound(round: Round) {
     this.currentRound = round
@@ -30,6 +34,7 @@ export class RoundService {
     return undefined;
   }
 
+ 
   async getHistory() {
   return await this.gameRepository.getRecentRounds();
 }

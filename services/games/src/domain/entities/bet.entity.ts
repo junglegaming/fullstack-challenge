@@ -17,14 +17,16 @@ export class Bet {
     return this._status
   }
 
-  cashout(multiplier: number) {
+  cashout(multiplier: number): bigint {
   if (this._status !== BetStatus.PENDING) {
     throw new Error('BET_ALREADY_RESOLVED')
   }
 
   this._status = BetStatus.CASHED_OUT
 
-  return Number(this.amount) * multiplier
+  const payoutAmount = Math.round(Number(this.amount) * multiplier);
+
+  return BigInt(payoutAmount)
 }
 
   lose() {

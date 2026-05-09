@@ -872,14 +872,24 @@ export namespace Prisma {
 
   export type AggregateWallet = {
     _count: WalletCountAggregateOutputType | null
+    _avg: WalletAvgAggregateOutputType | null
+    _sum: WalletSumAggregateOutputType | null
     _min: WalletMinAggregateOutputType | null
     _max: WalletMaxAggregateOutputType | null
+  }
+
+  export type WalletAvgAggregateOutputType = {
+    balance: number | null
+  }
+
+  export type WalletSumAggregateOutputType = {
+    balance: bigint | null
   }
 
   export type WalletMinAggregateOutputType = {
     id: string | null
     playerId: string | null
-    balance: string | null
+    balance: bigint | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -887,7 +897,7 @@ export namespace Prisma {
   export type WalletMaxAggregateOutputType = {
     id: string | null
     playerId: string | null
-    balance: string | null
+    balance: bigint | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -901,6 +911,14 @@ export namespace Prisma {
     _all: number
   }
 
+
+  export type WalletAvgAggregateInputType = {
+    balance?: true
+  }
+
+  export type WalletSumAggregateInputType = {
+    balance?: true
+  }
 
   export type WalletMinAggregateInputType = {
     id?: true
@@ -965,6 +983,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: WalletAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: WalletSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: WalletMinAggregateInputType
@@ -995,6 +1025,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: WalletCountAggregateInputType | true
+    _avg?: WalletAvgAggregateInputType
+    _sum?: WalletSumAggregateInputType
     _min?: WalletMinAggregateInputType
     _max?: WalletMaxAggregateInputType
   }
@@ -1002,10 +1034,12 @@ export namespace Prisma {
   export type WalletGroupByOutputType = {
     id: string
     playerId: string
-    balance: string
+    balance: bigint
     createdAt: Date
     updatedAt: Date
     _count: WalletCountAggregateOutputType | null
+    _avg: WalletAvgAggregateOutputType | null
+    _sum: WalletSumAggregateOutputType | null
     _min: WalletMinAggregateOutputType | null
     _max: WalletMaxAggregateOutputType | null
   }
@@ -1064,7 +1098,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       playerId: string
-      balance: string
+      balance: bigint
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["wallet"]>
@@ -1492,7 +1526,7 @@ export namespace Prisma {
   interface WalletFieldRefs {
     readonly id: FieldRef<"Wallet", 'String'>
     readonly playerId: FieldRef<"Wallet", 'String'>
-    readonly balance: FieldRef<"Wallet", 'String'>
+    readonly balance: FieldRef<"Wallet", 'BigInt'>
     readonly createdAt: FieldRef<"Wallet", 'DateTime'>
     readonly updatedAt: FieldRef<"Wallet", 'DateTime'>
   }
@@ -1910,6 +1944,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'BigInt'
+   */
+  export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt[]'
+   */
+  export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1935,6 +1983,20 @@ export namespace Prisma {
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
   /**
    * Deep Input Types
    */
@@ -1946,7 +2008,7 @@ export namespace Prisma {
     NOT?: WalletWhereInput | WalletWhereInput[]
     id?: StringFilter<"Wallet"> | string
     playerId?: StringFilter<"Wallet"> | string
-    balance?: StringFilter<"Wallet"> | string
+    balance?: BigIntFilter<"Wallet"> | bigint | number
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
@@ -1965,7 +2027,7 @@ export namespace Prisma {
     AND?: WalletWhereInput | WalletWhereInput[]
     OR?: WalletWhereInput[]
     NOT?: WalletWhereInput | WalletWhereInput[]
-    balance?: StringFilter<"Wallet"> | string
+    balance?: BigIntFilter<"Wallet"> | bigint | number
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }, "id" | "playerId">
@@ -1977,8 +2039,10 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: WalletCountOrderByAggregateInput
+    _avg?: WalletAvgOrderByAggregateInput
     _max?: WalletMaxOrderByAggregateInput
     _min?: WalletMinOrderByAggregateInput
+    _sum?: WalletSumOrderByAggregateInput
   }
 
   export type WalletScalarWhereWithAggregatesInput = {
@@ -1987,7 +2051,7 @@ export namespace Prisma {
     NOT?: WalletScalarWhereWithAggregatesInput | WalletScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Wallet"> | string
     playerId?: StringWithAggregatesFilter<"Wallet"> | string
-    balance?: StringWithAggregatesFilter<"Wallet"> | string
+    balance?: BigIntWithAggregatesFilter<"Wallet"> | bigint | number
     createdAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
   }
@@ -1995,7 +2059,7 @@ export namespace Prisma {
   export type WalletCreateInput = {
     id?: string
     playerId: string
-    balance: string
+    balance: bigint | number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -2003,7 +2067,7 @@ export namespace Prisma {
   export type WalletUncheckedCreateInput = {
     id?: string
     playerId: string
-    balance: string
+    balance: bigint | number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -2011,7 +2075,7 @@ export namespace Prisma {
   export type WalletUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
-    balance?: StringFieldUpdateOperationsInput | string
+    balance?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -2019,7 +2083,7 @@ export namespace Prisma {
   export type WalletUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
-    balance?: StringFieldUpdateOperationsInput | string
+    balance?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -2027,7 +2091,7 @@ export namespace Prisma {
   export type WalletCreateManyInput = {
     id?: string
     playerId: string
-    balance: string
+    balance: bigint | number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -2035,7 +2099,7 @@ export namespace Prisma {
   export type WalletUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
-    balance?: StringFieldUpdateOperationsInput | string
+    balance?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -2043,7 +2107,7 @@ export namespace Prisma {
   export type WalletUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     playerId?: StringFieldUpdateOperationsInput | string
-    balance?: StringFieldUpdateOperationsInput | string
+    balance?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -2061,6 +2125,17 @@ export namespace Prisma {
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -2082,6 +2157,10 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type WalletAvgOrderByAggregateInput = {
+    balance?: SortOrder
+  }
+
   export type WalletMaxOrderByAggregateInput = {
     id?: SortOrder
     playerId?: SortOrder
@@ -2096,6 +2175,10 @@ export namespace Prisma {
     balance?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type WalletSumOrderByAggregateInput = {
+    balance?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -2116,6 +2199,22 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -2134,6 +2233,14 @@ export namespace Prisma {
     set?: string
   }
 
+  export type BigIntFieldUpdateOperationsInput = {
+    set?: bigint | number
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
+  }
+
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
   }
@@ -2150,6 +2257,17 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
@@ -2189,6 +2307,33 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {

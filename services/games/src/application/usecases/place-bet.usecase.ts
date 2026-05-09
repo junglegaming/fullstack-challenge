@@ -24,7 +24,7 @@ async execute(playerId: string, amount: bigint, token: string) {
     'Authorization': token,
     'Content-Type': 'application/json',
   },
-});
+  });
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
