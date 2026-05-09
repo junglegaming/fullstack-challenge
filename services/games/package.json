@@ -9,14 +9,29 @@
     "test:e2e": "bun test tests/e2e"
   },
   "dependencies": {
+    "@crash/auth": "workspace:*",
     "@nestjs/common": "^11.1.17",
     "@nestjs/core": "^11.1.17",
+    "@nestjs/microservices": "^11.1.19",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.17",
+    "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/websockets": "^11.1.19",
+    "@prisma/client": "6.2.1",
+    "amqp-connection-manager": "^5.0.0",
+    "amqplib": "^1.0.6",
+    "jwks-rsa": "^4.0.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@types/passport-jwt": "^4.0.1",
     "bun-types": "latest",
+    "dotenv": "^17.4.2",
+    "prisma": "6.2.1",
     "typescript": "^5.8.3"
   }
 }

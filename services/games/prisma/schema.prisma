@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Round {
+  id             String   @id @default(uuid())
+  crashPoint     Float    
+  serverSeed     String   // ✅ Adicionado para auditoria
+  serverSeedHash String   // ✅ Adicionado para transparência inicial
+  status         String   @default("BETTING")
+  createdAt      DateTime @default(now())
+  bets           Bet[]    
+}
+
+model Bet {
+  id                String   @id @default(uuid())
+  playerId          String
+  amount            BigInt   
+  payout            BigInt?  // ✅ Quanto o player ganhou (null se perdeu)
+  cashoutMultiplier Float?   // ✅ Em que multiplicador ele saiu
+  status            String   @default("PENDING") 
+  roundId           String
+  round             Round    @relation(fields: [roundId], references: [id])
+  createdAt         DateTime @default(now())
+}
