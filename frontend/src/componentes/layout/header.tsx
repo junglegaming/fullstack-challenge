@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import keycloak from '../../services/keycloak'
 import { getWallet } from '../../services/wallet.service'
+import { useWalletStore } from '../../stores/wallet.store'
 
 export function Header() {
-  const [balance, setBalance] = useState('0')
+  const balance = useWalletStore((state) => state.balance)
+  const setBalance = useWalletStore((state) => state.setBalance)
 
   useEffect(() => {
     async function loadWallet() {
       try {
         const wallet = await getWallet()
 
-        setBalance(wallet.balance)
+        setBalance(Number(wallet.balance))
       } catch (err) {
         console.error(err)
       }
     }
 
     loadWallet()
-  }, [])
+  }, [setBalance])
 
   return (
     <header className="w-full h-20 border-b border-zinc-800 bg-zinc-950 px-8 flex items-center justify-between">
@@ -44,8 +46,8 @@ export function Header() {
           </p>
 
           <h2 className="text-lg font-bold text-green-400">
-            ${Number(balance).toLocaleString()}
-          </h2>
+            ${(balance / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </h2>
         </div>
 
         <div className="flex items-center gap-3">

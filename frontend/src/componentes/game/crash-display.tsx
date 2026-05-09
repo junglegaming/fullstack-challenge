@@ -4,6 +4,10 @@ export function CrashDisplay() {
   const multiplier = useGameStore((state) => state.multiplier)
   const crashed = useGameStore((state) => state.crashed)
 
+  const status = useGameStore(
+  (state) => state.status,
+    )
+
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <div
@@ -21,7 +25,14 @@ export function CrashDisplay() {
           ${crashed ? 'text-red-400' : 'text-zinc-400'}
         `}
       >
-        {crashed ? '💥 CRASHED' : '🚀 RUNNING'}
+        {status === 'betting' &&
+        '🟡 PLACE YOUR BET'}
+
+        {status === 'running' &&
+        '🚀 RUNNING'}
+
+        {status === 'crashed' &&
+        '💥 CRASHED'}
       </div>
 
       {!crashed && (

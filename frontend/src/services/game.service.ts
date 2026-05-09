@@ -1,6 +1,6 @@
 import keycloak from './keycloak'
 
-const API_URL = 'http://localhost:8000'
+const API_URL = 'http://127.0.0.1:4001'
 
 export async function placeBet(amount: number) {
   const response = await fetch(`${API_URL}/games/bet`, {
@@ -35,3 +35,4 @@ export async function cashout() {
 
   return response.json()
 }
+
