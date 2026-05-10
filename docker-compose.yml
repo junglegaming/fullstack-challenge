@@ -9,10 +9,10 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: postgres
-      POSTGRES_EXTRA_DATABASES: games,wallets
+      POSTGRES_DB: admin
+      POSTGRES_EXTRA_DATABASES: games, wallets
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin"]
@@ -40,7 +40,7 @@ services:
       retries: 10
 
   # ---------------------------------------------------------------------------
-  # Keycloak (Identity Provider)
+  # Keycloak (Identity Provider) — SEM healthcheck problemático
   # ---------------------------------------------------------------------------
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.5
@@ -53,12 +53,6 @@ services:
       KC_HEALTH_ENABLED: "true"
     volumes:
       - ./docker/keycloak:/opt/keycloak/data/import:ro
-    healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200'"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
-      start_period: 30s
 
   # ---------------------------------------------------------------------------
   # Kong (API Gateway — DB-less / declarative)
@@ -85,8 +79,6 @@ services:
       timeout: 5s
       retries: 10
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 
@@ -102,16 +94,15 @@ services:
     env_file:
       - ./services/games/.env
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4001/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:4001/health"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 15s
+    command: sh -c "bunx prisma generate && bunx prisma db push && bun run start"
 
   # ---------------------------------------------------------------------------
   # Wallets Service
@@ -125,28 +116,31 @@ services:
     env_file:
       - ./services/wallets/.env
     depends_on:
-      postgres:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:4002/health || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:4002/health"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 15s
+    command: sh -c "bunx prisma generate && bunx prisma db push && bun run start"
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend — SEM dependência bloqueante do Keycloak
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    command: "bun run start"
+    restart: unless-stopped
+    extra_hosts:
+    - "localhost:host-gateway"
 
 volumes:
   postgres_data:

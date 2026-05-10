@@ -17,12 +17,10 @@
       "protocol": "openid-connect",
       "redirectUris": [
         "http://localhost:3000/*",
+        "http://localhost:3000/api/auth/callback/keycloak",
         "http://localhost:5173/*"
       ],
-      "webOrigins": [
-        "http://localhost:3000",
-        "http://localhost:5173"
-      ],
+      "webOrigins": ["http://localhost:3000", "http://localhost:5173"],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       }

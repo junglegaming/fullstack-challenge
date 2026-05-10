@@ -5,6 +5,9 @@ node_modules/
 .env
 !.env.example
 
+# Bun
+bun.lock
+
 # Build output
 dist/
 

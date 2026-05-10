@@ -3,9 +3,9 @@ node_modules
 .gitignore
 
 # Tests
-tests/
-**/*.test.ts
-**/*.spec.ts
+# tests/
+# **/*.test.ts
+# **/*.spec.ts
 
 # Env files
 .env

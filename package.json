@@ -3,8 +3,8 @@
   "private": true,
   "workspaces": [
     "services/*",
-    "packages/*",
-    "frontend"
+    "frontend",
+    "packages/*"
   ],
   "scripts": {
     "docker:up": "docker compose up",
@@ -12,6 +12,14 @@
     "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/supertest": "^7.2.0",
+    "bun-types": "latest",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.8.0",
+    "supertest": "^7.2.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "crash-game": "."
   }
 }

@@ -9,8 +9,12 @@ node_modules/
 dist/
 tsconfig.tsbuildinfo
 
+# Prisma
+prisma/migrations/
+src/generated/
+
 # Bun
-bun.lockb
+bun.lock
 
 # OS
 .DS_Store
