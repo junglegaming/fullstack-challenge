@@ -16,6 +16,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "bun-types": "latest",
     "typescript": "^5.8.3"
   }
