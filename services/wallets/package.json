@@ -6,7 +6,8 @@
     "dev": "bun run --watch src/main.ts",
     "start": "bun run src/main.ts",
     "test": "bun test tests/unit",
-    "test:e2e": "bun test tests/e2e"
+    "test:e2e": "bun test tests/e2e",
+    "migration:run": "bun run scripts/migration-run.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.17",
