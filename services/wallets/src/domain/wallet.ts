@@ -84,6 +84,14 @@ export class Wallet {
     this._reservations.delete(reservationId);
   }
 
+  settleWin(reservationId: string, payout: Money): void {
+    if (!this._reservations.has(reservationId)) {
+      throw new ReservationNotFoundError(reservationId);
+    }
+    this._reservations.delete(reservationId);
+    this._availableBalance = this._availableBalance.add(payout);
+  }
+
   releaseReservation(reservationId: string): void {
     const amount = this._reservations.get(reservationId);
     if (amount === undefined) {

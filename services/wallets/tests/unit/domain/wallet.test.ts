@@ -212,4 +212,70 @@ describe("Wallet", () => {
       );
     });
   });
+
+  describe("settleWin", () => {
+    it("removes the reservation and credits payout to available", () => {
+      const wallet = Wallet.reconstitute(
+        "w-1",
+        "p-1",
+        Money.fromCents(0),
+        new Map([["bet-1", Money.fromCents(1000)]]),
+      );
+
+      wallet.settleWin("bet-1", Money.fromCents(2500));
+
+      expect(wallet.availableBalance.cents).toBe(2500);
+      expect(wallet.reservedBalance.cents).toBe(0);
+      expect(wallet.reservations.has("bet-1")).toBe(false);
+    });
+
+    it("only resolves the targeted reservation when multiple exist", () => {
+      const wallet = Wallet.reconstitute(
+        "w-1",
+        "p-1",
+        Money.fromCents(0),
+        new Map([
+          ["bet-1", Money.fromCents(1000)],
+          ["bet-2", Money.fromCents(500)],
+        ]),
+      );
+
+      wallet.settleWin("bet-1", Money.fromCents(2500));
+
+      expect(wallet.availableBalance.cents).toBe(2500);
+      expect(wallet.reservedBalance.cents).toBe(500);
+      expect(wallet.reservations.has("bet-2")).toBe(true);
+    });
+
+    it("throws ReservationNotFoundError when reservationId does not exist", () => {
+      const wallet = Wallet.reconstitute(
+        "w-1",
+        "p-1",
+        Money.fromCents(1000),
+        new Map(),
+      );
+
+      expect(() =>
+        wallet.settleWin("nonexistent", Money.fromCents(2000)),
+      ).toThrow(ReservationNotFoundError);
+    });
+
+    it("tracks the full balance lifecycle: deposit → reserve → settleWin", () => {
+      // available=1000, reserved=0
+      const wallet = Wallet.reconstitute(
+        "w-1",
+        "p-1",
+        Money.fromCents(1000),
+        new Map(),
+      );
+
+      wallet.reserve("bet-1", Money.fromCents(1000));
+      expect(wallet.availableBalance.cents).toBe(0);
+      expect(wallet.reservedBalance.cents).toBe(1000);
+
+      wallet.settleWin("bet-1", Money.fromCents(2500));
+      expect(wallet.availableBalance.cents).toBe(2500);
+      expect(wallet.reservedBalance.cents).toBe(0);
+    });
+  });
 });
