@@ -18,7 +18,7 @@ export class TypeOrmWalletRepository implements WalletRepository {
   async findByPlayerId(playerId: string): Promise<Wallet | null> {
     const orm = await this.wallets.findOne({
       where: { playerId },
-      relations: ["reservations"],
+      relations: { reservations: true },
     });
     if (!orm) return null;
     return this.toDomain(orm);
