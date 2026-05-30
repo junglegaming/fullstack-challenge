@@ -18,3 +18,17 @@ export class DuplicateReservationError extends Error {
     this.name = "DuplicateReservationError";
   }
 }
+
+export class WalletAlreadyExistsError extends Error {
+  constructor(playerId: string) {
+    super(`Wallet already exists for playerId: ${playerId}`);
+    this.name = "WalletAlreadyExistsError";
+  }
+}
+
+export class WalletNotFoundError extends Error {
+  constructor(playerId: string) {
+    super(`Wallet not found for playerId: ${playerId}`);
+    this.name = "WalletNotFoundError";
+  }
+}
