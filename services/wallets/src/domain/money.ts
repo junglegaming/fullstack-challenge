@@ -10,9 +10,9 @@ export class NonIntegerAmountError extends Error {
   }
 }
 
-export class InsufficientFundsError extends Error {
+export class NegativeResultError extends Error {
   constructor() {
-    super("Subtraction would result in a negative balance");
+    super("Subtraction would result in a negative amount");
   }
 }
 
@@ -43,7 +43,7 @@ export class Money {
 
   subtract(other: Money): Money {
     if (other._cents > this._cents) {
-      throw new InsufficientFundsError();
+      throw new NegativeResultError();
     }
     return new Money(this._cents - other._cents);
   }
