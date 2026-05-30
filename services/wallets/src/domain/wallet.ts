@@ -1,4 +1,5 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import { DuplicateReservationError, InsufficientFundsError } from "./errors";
 import { Money } from "./money";
 
 export class Wallet {
@@ -59,5 +60,16 @@ export class Wallet {
 
   get reservations(): ReadonlyMap<string, Money> {
     return this._reservations;
+  }
+
+  reserve(reservationId: string, amount: Money): void {
+    if (this._reservations.has(reservationId)) {
+      throw new DuplicateReservationError(reservationId);
+    }
+    if (amount.isGreaterThan(this._availableBalance)) {
+      throw new InsufficientFundsError();
+    }
+    this._availableBalance = this._availableBalance.subtract(amount);
+    this._reservations.set(reservationId, amount);
   }
 }
