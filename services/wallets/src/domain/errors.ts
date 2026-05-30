@@ -6,15 +6,15 @@ export class InsufficientFundsError extends Error {
 }
 
 export class ReservationNotFoundError extends Error {
-  constructor(betId: string) {
-    super(`No active reservation found for betId: ${betId}`);
+  constructor(reservationId: string) {
+    super(`No active reservation found for reservationId: ${reservationId}`);
     this.name = "ReservationNotFoundError";
   }
 }
 
 export class DuplicateReservationError extends Error {
-  constructor(betId: string) {
-    super(`A reservation for betId ${betId} has already been processed`);
+  constructor(reservationId: string) {
+    super(`A reservation for reservationId ${reservationId} already exists`);
     this.name = "DuplicateReservationError";
   }
 }
