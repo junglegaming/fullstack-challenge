@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { DuplicateReservationError, InsufficientFundsError } from "./errors";
+import {
+  DuplicateReservationError,
+  InsufficientFundsError,
+  ReservationNotFoundError,
+} from "./errors";
 import { Money } from "./money";
 
 export class Wallet {
@@ -71,5 +75,21 @@ export class Wallet {
     }
     this._availableBalance = this._availableBalance.subtract(amount);
     this._reservations.set(reservationId, amount);
+  }
+
+  settleLoss(reservationId: string): void {
+    if (!this._reservations.has(reservationId)) {
+      throw new ReservationNotFoundError(reservationId);
+    }
+    this._reservations.delete(reservationId);
+  }
+
+  releaseReservation(reservationId: string): void {
+    const amount = this._reservations.get(reservationId);
+    if (amount === undefined) {
+      throw new ReservationNotFoundError(reservationId);
+    }
+    this._availableBalance = this._availableBalance.add(amount);
+    this._reservations.delete(reservationId);
   }
 }
