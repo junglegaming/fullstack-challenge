@@ -90,4 +90,12 @@ export class Round {
     }
     return lost;
   }
+
+  // Removes a PENDING bet; used when the wallet rejects the reservation.
+  cancelBet(playerId: string): void {
+    const bet = this._bets.get(playerId);
+    if (bet && bet.status === BetStatus.PENDING) {
+      this._bets.delete(playerId);
+    }
+  }
 }
