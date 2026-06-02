@@ -6,16 +6,24 @@
     "dev": "bun run --watch src/main.ts",
     "start": "bun run src/main.ts",
     "test": "bun test tests/unit",
-    "test:e2e": "bun test tests/e2e"
+    "test:e2e": "bun test tests/e2e",
+    "migration:run": "bun run scripts/migration-run.ts"
   },
   "dependencies": {
+    "@golevelup/nestjs-rabbitmq": "^9.0.2",
     "@nestjs/common": "^11.1.17",
     "@nestjs/core": "^11.1.17",
     "@nestjs/platform-express": "^11.1.17",
+    "@nestjs/typeorm": "^11.0.1",
+    "amqplib": "^2.0.1",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "typeorm": "^1.0.0"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^25.9.1",
     "bun-types": "latest",
     "typescript": "^5.8.3"
   }

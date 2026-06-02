@@ -1,5 +1,22 @@
 _format_version: "3.0"
 
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "http://localhost:3000"
+      methods:
+        - GET
+        - POST
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+      exposed_headers:
+        - X-Kong-Request-Id
+      credentials: true
+      max_age: 3600
+
 services:
   - name: games-service
     url: http://games:4001
