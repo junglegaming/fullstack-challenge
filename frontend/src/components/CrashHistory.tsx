@@ -7,8 +7,8 @@ interface Props {
 
 function crashColor(crashPoint: number): string {
   return crashPoint >= 2
-    ? 'text-emerald-400 bg-emerald-950/40'
-    : 'text-red-400 bg-red-950/60'
+    ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40'
+    : 'text-red-400 bg-red-950/60 border-red-800/40'
 }
 
 export function CrashHistory({ history }: Props) {
@@ -21,15 +21,26 @@ export function CrashHistory({ history }: Props) {
       ) : (
         <div className="flex flex-wrap gap-2">
           {history.map(entry => (
-            <span
-              key={entry.roundId}
-              className={clsx(
-                'rounded-full px-3 py-1 text-xs font-bold tabular-nums',
-                crashColor(entry.crashPoint),
+            <div key={entry.roundId} className="flex flex-col items-center gap-0.5">
+              <span
+                className={clsx(
+                  'rounded-full border px-3 py-1 text-xs font-bold tabular-nums',
+                  crashColor(entry.crashPoint),
+                )}
+              >
+                {entry.crashPoint.toFixed(2)}x
+              </span>
+
+              {entry.playerResult && (
+                <span className={clsx('text-[10px] font-semibold leading-none',
+                  entry.playerResult.cashedOut ? 'text-emerald-400' : 'text-red-400',
+                )}>
+                  {entry.playerResult.cashedOut
+                    ? `✓ ${entry.playerResult.multiplier.toFixed(2)}x`
+                    : '✗ perdeu'}
+                </span>
               )}
-            >
-              {entry.crashPoint.toFixed(2)}x
-            </span>
+            </div>
           ))}
         </div>
       )}

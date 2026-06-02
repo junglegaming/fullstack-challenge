@@ -5,8 +5,8 @@ interface Props {
   bets: RoundBet[]
 }
 
-function formatBRL(cents: number | string): string {
-  return (Number(cents) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+function formatBRL(cents: number | string | null | undefined): string {
+  return ((Number(cents) || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function shortId(id: string): string {
@@ -36,12 +36,14 @@ export function BetList({ bets }: Props) {
               {bets.map(bet => (
                 <tr key={bet.playerId}>
                   <td className="py-1.5 font-mono text-zinc-300">{shortId(bet.playerId)}</td>
-                  <td className="py-1.5 text-zinc-200">{formatBRL(bet.amount)}</td>
+                  <td className="py-1.5 text-zinc-200">{formatBRL(bet.amountCents)}</td>
                   <td className="py-1.5">
-                    {bet.cashedOut ? (
+                    {bet.status === 'CASHED_OUT' ? (
                       <span className={clsx('font-semibold text-emerald-400')}>
-                        {bet.multiplier?.toFixed(2)}x — {bet.payout ? formatBRL(bet.payout) : ''}
+                        {bet.multiplier?.toFixed(2)}x — {bet.payoutCents ? formatBRL(bet.payoutCents) : ''}
                       </span>
+                    ) : bet.status === 'LOST' ? (
+                      <span className="text-red-400">Perdeu</span>
                     ) : (
                       <span className="text-zinc-500">Em jogo</span>
                     )}

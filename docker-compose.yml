@@ -137,16 +137,17 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      kong:
+        condition: service_healthy
 
 volumes:
   postgres_data:

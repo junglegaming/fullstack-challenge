@@ -6,15 +6,14 @@ import type { RoundPhase } from '@/types'
 
 interface Props {
   phase: RoundPhase | null
-  roundId: string | null
-  playerId: string
   hasBetThisRound: boolean
   hasCashedOut: boolean
   onBetPlaced: () => void
   onCashedOut: () => void
+  onBetReset: () => void
 }
 
-export function BetPanel({ phase, hasBetThisRound, hasCashedOut, onBetPlaced, onCashedOut }: Props) {
+export function BetPanel({ phase, hasBetThisRound, hasCashedOut, onBetPlaced, onCashedOut, onBetReset }: Props) {
   const [amountBRL, setAmountBRL] = useState('10')
   const [loading, setLoading] = useState(false)
 
@@ -54,6 +53,10 @@ export function BetPanel({ phase, hasBetThisRound, hasCashedOut, onBetPlaced, on
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Erro ao sacar'
       toast.error(msg)
+      // Bet was cancelled by the backend (wallet rejected reservation) — reset so user can bet next round
+      if (err instanceof ApiError && (err.status === 404 || err.status === 400)) {
+        onBetReset()
+      }
     } finally {
       setLoading(false)
     }
@@ -67,6 +70,8 @@ export function BetPanel({ phase, hasBetThisRound, hasCashedOut, onBetPlaced, on
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">R$</span>
           <input
+            id="bet-amount"
+            name="bet-amount"
             type="number"
             min="1"
             step="1"

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { clsx } from 'clsx'
 import type { RoundPhase } from '@/types'
 
@@ -80,6 +81,3 @@ function BettingTimer({ bettingEndsAt }: { bettingEndsAt: Date | null }) {
     </div>
   )
 }
-
-// hoisted imports needed for BettingTimer
-import { useState, useEffect } from 'react'

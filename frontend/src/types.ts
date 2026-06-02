@@ -1,16 +1,18 @@
 export type RoundPhase = 'BETTING' | 'RUNNING' | 'CRASHED'
 
+export type BetStatus = 'PENDING' | 'CASHED_OUT' | 'LOST'
+
 export interface RoundBet {
   playerId: string
-  amount: number
-  cashedOut: boolean
+  amountCents: number
+  status: BetStatus
+  payoutCents: number | null
   multiplier?: number
-  payout?: number
 }
 
 export interface CurrentRound {
   roundId: string
-  phase: RoundPhase
+  state: RoundPhase
   hash: string
   bettingEndsAt?: string
   startedAt?: string
@@ -23,6 +25,8 @@ export interface CurrentRound {
 export interface CrashHistoryEntry {
   roundId: string
   crashPoint: number
+  /** Set only for rounds where the current player had a bet */
+  playerResult?: { cashedOut: true; multiplier: number } | { cashedOut: false }
 }
 
 export interface WalletInfo {
@@ -45,7 +49,7 @@ export interface RoundStartedPayload {
 export interface MultiplierTickPayload {
   roundId: string
   multiplier: number
-  elapsed: number
+  elapsedMs: number
 }
 
 export interface RoundCrashedPayload {
@@ -58,17 +62,17 @@ export interface RoundCrashedPayload {
 export interface BetPlacedPayload {
   roundId: string
   playerId: string
-  amount: number
+  amountCents: number
 }
 
 export interface BetCashedOutPayload {
   roundId: string
   playerId: string
   multiplier: number
-  payout: number
+  payoutCents: number
 }
 
 export interface WalletSettledPayload {
   playerId: string
-  availableBalance: number
+  availableBalanceCents: number
 }
