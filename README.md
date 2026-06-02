@@ -1,5 +1,117 @@
 # Desafio Full-stack - Crash Game 🎮
 
+---
+
+## Implementação — Leandro Moraes
+
+### Como rodar
+
+**Pré-requisitos:** Docker + Docker Compose
+
+```bash
+git clone <repo>
+cd fullstack-challenge
+
+# Sobe toda a stack (infra + backend + frontend)
+npm run docker:up
+
+# Para e limpa (preserva volumes/dados)
+npm run docker:down
+
+# Reset completo (apaga banco, filas, imagens)
+npm run docker:prune
+```
+
+| Serviço | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Game Service | http://localhost:8000/games |
+| Wallet Service | http://localhost:8000/wallets |
+| Keycloak Admin | http://localhost:8080 (`admin` / `admin`) |
+| RabbitMQ UI | http://localhost:15672 (`admin` / `admin`) |
+
+**Usuário de teste pré-configurado:** `player` / `player123` — saldo inicial R$ 10.000,00 (criado automaticamente pela migration de seed).
+
+---
+
+### Decisões de Arquitetura
+
+#### 1. Wallet é o único dono do dinheiro
+
+O Game Service nunca toca no saldo diretamente. Ao receber uma aposta, publica `wallet.reserve` no RabbitMQ e aguarda a resposta assíncrona (`wallet.reserved` ou `wallet.rejected`). Somente após `wallet.reserved` o jogo aceita a aposta. Isso garante consistência mesmo em falhas parciais.
+
+**Modelo de reserva:** apostar move `available → reserved`. Ao sacar ou perder, o Wallet liquida a reserva. O saldo disponível nunca fica negativo por construção.
+
+**Idempotência:** cada operação carrega o `betId` (UUID) como chave. Inserção duplicada em `wallet_reservations` falha com UNIQUE constraint — mensagem duplicada é ignorada silenciosamente.
+
+#### 2. Value Object Money
+
+```typescript
+class Money {
+  private readonly _cents: number  // BIGINT — nunca float
+}
+```
+
+Dinheiro em centavos inteiros (BIGINT). Float causaria `0.1 + 0.2 = 0.30000000000000004`. O tipo torna o erro impossível por construção.
+
+Serialização JSON na borda: o banco retorna string para BIGINT — `Number(orm.availableBalance)` ao ler, e o evento WS entrega como `number` normal.
+
+#### 3. Máquina de estados Round
+
+```
+BETTING → RUNNING → CRASHED → (novo BETTING)
+```
+
+Cada transição valida o estado atual e lança erro de domínio tipado se a operação for inválida (`BettingClosedError`, `CashoutNotAllowedError`, `BetAlreadyPlacedError`). O controller mapeia para HTTP 400/404/409.
+
+O multiplicador não é salvo no banco a cada tick. Persiste-se apenas `startedAt`. O valor atual é função do tempo decorrido — todas as abas calculam a partir do mesmo timestamp e mostram o mesmo valor.
+
+#### 4. Provably Fair (commit-reveal)
+
+- **Antes da rodada:** gera `seed` aleatória → calcula `hash = HMAC-SHA256(HOUSE_KEY, seed)` → publica o hash (envelope lacrado) no evento `round.betting`
+- **Depois do crash:** revela a `seed` no evento `round.crashed`
+- **Verificação:** `HMAC(HOUSE_KEY, seed_revelada) === hash_recebido` → crash point calculável pela fórmula pública
+- **Endpoint:** `GET /games/rounds/:roundId/verify` entrega seed + hash para auditoria
+
+#### 5. WebSocket — somente servidor → cliente
+
+Apostas e cashout são REST POST. O WebSocket é push unidirecional. Eventos:
+
+| Evento | Quando |
+|---|---|
+| `round.betting` | Nova fase de apostas (hash da seed revelado) |
+| `round.started` | Multiplicador começou a subir (`startedAt`) |
+| `multiplier.tick` | A cada 100ms com valor atual |
+| `round.crashed` | Crash point + seed revelada + resultado das apostas |
+| `bet.placed` | Aposta confirmada pelo Wallet |
+| `bet.cashed_out` | Jogador sacou |
+| `settled` | Saldo atualizado (filtrado por `playerId` no frontend) |
+
+#### 6. Frontend — balance com fonte única de verdade
+
+O saldo é atualizado por dois caminhos para garantir consistência mesmo em falhas de rede:
+
+1. **WS `settled`** — imediato, o evento já carrega `availableBalanceCents` correto
+2. **REST fallback** — 600ms após aposta (reserva assíncrona) e 2s após crash (liquidação via RabbitMQ)
+
+O evento `settled` é broadcast para todos os clientes — filtro por `playerId` garante que cada jogador vê apenas seu próprio saldo.
+
+---
+
+### Trade-offs e TODOs documentados
+
+| Item | Decisão | Motivo |
+|---|---|---|
+| Repository pattern | Não abstraído (ORM direto na infra) | Não vamos trocar de banco — abstração sem necessidade real |
+| Saga / compensação | Documentada, não implementada | Seria um job agendado liberando reservas > duração máxima do round |
+| Hash chain entre rodadas | Não implementado | Commit-reveal por round já garante fairness — hash chain é refinamento |
+| CQRS / Event Sourcing | Não implementado | Over-engineering para o domínio atual |
+| Testes E2E (Playwright) | Não implementado | Ficou fora do prazo — testes unitários de domínio cobrem invariantes |
+
+**Compensação de reservas pendentes:** se o Game Service cair durante uma rodada, reservas ficam presas em `reserved`. A compensação entraria em `WalletEventsConsumer` como um job agendado (a cada 60s) buscando `wallet_reservations.createdAt < now - max_round_duration` e publicando `wallet.settle` com `outcome: "loss"` para cada uma.
+
+---
+
 ## Bem-vindo à Jungle Gaming 🦧
 
 A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
