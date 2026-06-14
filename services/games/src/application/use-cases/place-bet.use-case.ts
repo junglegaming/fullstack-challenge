@@ -3,12 +3,18 @@ import type {
   PlaceBetCommandDto,
   PlaceBetResponseDto,
 } from "../dtos/bet-command.dto";
+import { createMessageEnvelope } from "../messaging/message-envelope";
+import { WALLET_DEBIT_REQUESTED } from "../messaging/wallet-events";
 import type { GameRoundsRepository } from "../ports/game-rounds.repository";
+import type { WalletCommandPublisher } from "../ports/wallet-command.publisher";
 import { Money } from "../../domain/value-objects/money";
 import { PlayerId } from "../../domain/value-objects/player-id";
 
 export class PlaceBetUseCase {
-  constructor(private readonly roundsRepository: GameRoundsRepository) {}
+  constructor(
+    private readonly roundsRepository: GameRoundsRepository,
+    private readonly walletCommandPublisher: WalletCommandPublisher,
+  ) {}
 
   async execute(input: {
     playerId: string;
@@ -23,9 +29,21 @@ export class PlaceBetUseCase {
       now: new Date(),
     });
 
-    // Temporary wallet mock: assume the debit succeeds immediately until RabbitMQ is wired.
-    round.confirmBetPlaced(bet.id);
     await this.roundsRepository.save(round);
+    await this.walletCommandPublisher.publishDebitRequested(
+      createMessageEnvelope({
+        type: WALLET_DEBIT_REQUESTED,
+        producer: "games-service",
+        idempotencyKey,
+        payload: {
+          playerId: input.playerId,
+          roundId: round.id.toString(),
+          betId: bet.id.toString(),
+          amountCents: bet.amount.amountInCents.toString(),
+          reason: "BET_PLACED",
+        },
+      }),
+    );
 
     return {
       status: "PENDING",

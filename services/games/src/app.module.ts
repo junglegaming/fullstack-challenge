@@ -1,24 +1,53 @@
 import { Module } from "@nestjs/common";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 import { GAME_ROUNDS_REPOSITORY } from "./application/ports/game-rounds.repository";
 import type { GameRoundsRepository } from "./application/ports/game-rounds.repository";
+import { WALLET_COMMAND_PUBLISHER } from "./application/ports/wallet-command.publisher";
 import { CashOutBetUseCase } from "./application/use-cases/cash-out-bet.use-case";
 import { GetCurrentRoundUseCase } from "./application/use-cases/get-current-round.use-case";
 import { GetPlayerBetsUseCase } from "./application/use-cases/get-player-bets.use-case";
 import { GetRoundHistoryUseCase } from "./application/use-cases/get-round-history.use-case";
 import { GetRoundVerificationUseCase } from "./application/use-cases/get-round-verification.use-case";
+import { HandleWalletDebitFailedUseCase } from "./application/use-cases/handle-wallet-debit-failed.use-case";
+import { HandleWalletDebitSucceededUseCase } from "./application/use-cases/handle-wallet-debit-succeeded.use-case";
 import { ProvablyFairService } from "./domain/services/provably-fair.service";
+import {
+  getRabbitMqUrl,
+  getWalletQueueName,
+  WALLET_RMQ_CLIENT,
+} from "./infrastructure/messaging/rabbitmq.constants";
+import { RabbitMqWalletCommandPublisher } from "./infrastructure/messaging/rabbitmq-wallet-command.publisher";
 import { InMemoryGameRoundsRepository } from "./infrastructure/persistence/in-memory-game-rounds.repository";
 import { GamesController } from "./presentation/controllers/games.controller";
 import { PlaceBetUseCase } from "./application/use-cases/place-bet.use-case";
+import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit-result.consumer";
 
 @Module({
-  controllers: [GamesController],
+  imports: [
+    ClientsModule.register([
+      {
+        name: WALLET_RMQ_CLIENT,
+        transport: Transport.RMQ,
+        options: {
+          urls: [getRabbitMqUrl()],
+          queue: getWalletQueueName(),
+          queueOptions: { durable: true },
+        },
+      },
+    ]),
+  ],
+  controllers: [GamesController, WalletDebitResultConsumer],
   providers: [
     ProvablyFairService,
     InMemoryGameRoundsRepository,
+    RabbitMqWalletCommandPublisher,
     {
       provide: GAME_ROUNDS_REPOSITORY,
       useExisting: InMemoryGameRoundsRepository,
+    },
+    {
+      provide: WALLET_COMMAND_PUBLISHER,
+      useExisting: RabbitMqWalletCommandPublisher,
     },
     {
       provide: GetCurrentRoundUseCase,
@@ -48,15 +77,29 @@ import { PlaceBetUseCase } from "./application/use-cases/place-bet.use-case";
     },
     {
       provide: PlaceBetUseCase,
-      inject: [GAME_ROUNDS_REPOSITORY],
-      useFactory: (roundsRepository: GameRoundsRepository) =>
-        new PlaceBetUseCase(roundsRepository),
+      inject: [GAME_ROUNDS_REPOSITORY, WALLET_COMMAND_PUBLISHER],
+      useFactory: (
+        roundsRepository: GameRoundsRepository,
+        walletCommandPublisher: RabbitMqWalletCommandPublisher,
+      ) => new PlaceBetUseCase(roundsRepository, walletCommandPublisher),
     },
     {
       provide: CashOutBetUseCase,
       inject: [GAME_ROUNDS_REPOSITORY],
       useFactory: (roundsRepository: GameRoundsRepository) =>
         new CashOutBetUseCase(roundsRepository),
+    },
+    {
+      provide: HandleWalletDebitSucceededUseCase,
+      inject: [GAME_ROUNDS_REPOSITORY],
+      useFactory: (roundsRepository: GameRoundsRepository) =>
+        new HandleWalletDebitSucceededUseCase(roundsRepository),
+    },
+    {
+      provide: HandleWalletDebitFailedUseCase,
+      inject: [GAME_ROUNDS_REPOSITORY],
+      useFactory: (roundsRepository: GameRoundsRepository) =>
+        new HandleWalletDebitFailedUseCase(roundsRepository),
     },
   ],
 })

@@ -290,6 +290,10 @@ export class Round {
     return this.props.bets;
   }
 
+  getBetById(betId: BetId): Bet | null {
+    return this.props.bets.find((item) => item.id.equals(betId)) ?? null;
+  }
+
   private revealHiddenServerSeed(): void {
     if (this.props.hiddenServerSeed) {
       this.props.serverSeed = this.props.hiddenServerSeed;
