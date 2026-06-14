@@ -10,11 +10,15 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate"
   },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "dependencies": {
     "@nestjs/common": "^11.1.17",
     "@nestjs/core": "^11.1.17",
     "@nestjs/platform-express": "^11.1.17",
     "@prisma/client": "^6.9.0",
+    "jose": "^6.0.11",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
