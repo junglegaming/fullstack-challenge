@@ -15,10 +15,12 @@
     "@nestjs/core": "^11.1.17",
     "@nestjs/platform-express": "^11.1.17",
     "@prisma/client": "^6.9.0",
+    "jose": "^6.2.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/node": "^25.9.3",
     "bun-types": "latest",
     "prisma": "^6.9.0",
     "typescript": "^5.8.3"

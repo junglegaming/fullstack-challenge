@@ -1,12 +1,31 @@
 import { Round } from "../../domain/entities/round";
 import { ProvablyFairService } from "../../domain/services/provably-fair.service";
+import { RoundId } from "../../domain/value-objects/round-id";
 import {
-  RoundVerificationDto,
   toRoundVerificationDto,
 } from "../dtos/round-verification.dto";
+import type { RoundVerificationDto } from "../dtos/round-verification.dto";
+import type { GameRoundsRepository } from "../ports/game-rounds.repository";
 
 export class GetRoundVerificationUseCase {
-  constructor(private readonly provablyFairService: ProvablyFairService) {}
+  constructor(
+    private readonly provablyFairService: ProvablyFairService,
+    private readonly roundsRepository?: GameRoundsRepository,
+  ) {}
+
+  async execute(roundId: string): Promise<RoundVerificationDto> {
+    if (!this.roundsRepository) {
+      throw new Error("Game rounds repository is not configured");
+    }
+
+    const round = await this.roundsRepository.findById(RoundId.create(roundId));
+
+    if (!round) {
+      throw new Error(`Round ${roundId} not found`);
+    }
+
+    return this.executeFromRound(round);
+  }
 
   executeFromRound(round: Round): RoundVerificationDto {
     const verification = round.toVerificationData(this.provablyFairService);
