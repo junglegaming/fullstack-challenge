@@ -1,0 +1,8 @@
+{
+  "name": "@crash/frontend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Frontend scaffold not implemented yet\" && exit 1"
+  }
+}

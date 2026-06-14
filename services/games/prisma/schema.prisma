@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Round {
+  id             String      @id @default(cuid())
+  status         RoundStatus
+  serverSeedHash String
+  serverSeed     String?
+  clientSeed     String
+  nonce          Int
+  crashPointBps  Int
+  bettingEndsAt  DateTime
+  startedAt      DateTime?
+  crashedAt      DateTime?
+  settledAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  bets Bet[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("rounds")
+}
+
+model Bet {
+  id                   String    @id @default(cuid())
+  roundId              String
+  round                Round     @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  playerId             String
+  amountCents          BigInt
+  status               BetStatus
+  cashOutMultiplierBps Int?
+  payoutCents          BigInt?
+  idempotencyKey       String    @unique
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([roundId, playerId])
+  @@index([playerId])
+  @@index([roundId])
+  @@map("bets")
+}
+
+enum RoundStatus {
+  BETTING
+  RUNNING
+  CRASHED
+  SETTLED
+}
+
+enum BetStatus {
+  PENDING_DEBIT
+  PLACED
+  REJECTED
+  CASHED_OUT
+  LOST
+}
