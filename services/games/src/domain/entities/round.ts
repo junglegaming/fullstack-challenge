@@ -2,7 +2,10 @@ import { BetNotAllowedError } from "../errors/bet-not-allowed.error";
 import { BetNotFoundError } from "../errors/bet-not-found.error";
 import { CashOutNotAllowedError } from "../errors/cash-out-not-allowed.error";
 import { DuplicateBetError } from "../errors/duplicate-bet.error";
+import { RoundNotFinishedError } from "../errors/round-not-finished.error";
 import { InvalidRoundTransitionError } from "../errors/invalid-round-transition.error";
+import { InvalidServerSeedError } from "../errors/invalid-server-seed.error";
+import { ProvablyFairService, RoundVerificationData } from "../services/provably-fair.service";
 import { Bet } from "./bet";
 import { BetId } from "../value-objects/bet-id";
 import { BetStatus, RoundStatus } from "../value-objects/round-status";
@@ -16,9 +19,11 @@ type RoundProps = {
   status: RoundStatus;
   serverSeedHash: string;
   serverSeed: string | null;
+  hiddenServerSeed: string | null;
   clientSeed: string;
   nonce: number;
   crashPoint: Multiplier;
+  bettingStartedAt: Date;
   bettingEndsAt: Date;
   startedAt: Date | null;
   crashedAt: Date | null;
@@ -41,6 +46,7 @@ export class Round {
     clientSeed: string;
     nonce: number;
     crashPoint: Multiplier;
+    bettingStartedAt: Date;
     bettingEndsAt: Date;
   }): Round {
     return new Round({
@@ -48,9 +54,46 @@ export class Round {
       status: RoundStatus.BETTING,
       serverSeedHash: input.serverSeedHash,
       serverSeed: null,
+      hiddenServerSeed: null,
       clientSeed: input.clientSeed,
       nonce: input.nonce,
       crashPoint: input.crashPoint,
+      bettingStartedAt: input.bettingStartedAt,
+      bettingEndsAt: input.bettingEndsAt,
+      startedAt: null,
+      crashedAt: null,
+      settledAt: null,
+      bets: [],
+    });
+  }
+
+  static createProvablyFair(input: {
+    provablyFairService: ProvablyFairService;
+    clientSeed: string;
+    nonce: number;
+    bettingStartedAt: Date;
+    bettingEndsAt: Date;
+    serverSeed?: string;
+  }): Round {
+    const serverSeed =
+      input.serverSeed ?? input.provablyFairService.generateServerSeed();
+    const serverSeedHash = input.provablyFairService.hashServerSeed(serverSeed);
+    const crashPoint = input.provablyFairService.calculateCrashPoint({
+      serverSeed,
+      clientSeed: input.clientSeed,
+      nonce: input.nonce,
+    });
+
+    return new Round({
+      id: RoundId.generate(),
+      status: RoundStatus.BETTING,
+      serverSeedHash,
+      serverSeed: null,
+      hiddenServerSeed: serverSeed,
+      clientSeed: input.clientSeed,
+      nonce: input.nonce,
+      crashPoint,
+      bettingStartedAt: input.bettingStartedAt,
       bettingEndsAt: input.bettingEndsAt,
       startedAt: null,
       crashedAt: null,
@@ -142,6 +185,7 @@ export class Round {
   crash(now: Date): void {
     this.transitionTo(RoundStatus.CRASHED);
     this.props.crashedAt = now;
+    this.revealHiddenServerSeed();
 
     for (const bet of this.props.bets) {
       if (bet.isPlaced()) {
@@ -155,8 +199,43 @@ export class Round {
     this.props.settledAt = now;
   }
 
-  revealServerSeed(serverSeed: string): void {
+  revealServerSeed(serverSeed: string, provablyFairService: ProvablyFairService): void {
+    if (provablyFairService.hashServerSeed(serverSeed) !== this.props.serverSeedHash) {
+      throw new InvalidServerSeedError();
+    }
+
     this.props.serverSeed = serverSeed;
+  }
+
+  toVerificationData(
+    provablyFairService: ProvablyFairService,
+  ): Omit<RoundVerificationData, "isValid"> {
+    if (
+      this.props.status !== RoundStatus.CRASHED &&
+      this.props.status !== RoundStatus.SETTLED
+    ) {
+      throw new RoundNotFinishedError();
+    }
+
+    const serverSeed = this.requireRevealedServerSeed();
+    const crashPoint = provablyFairService.calculateCrashPoint({
+      serverSeed,
+      clientSeed: this.props.clientSeed,
+      nonce: this.props.nonce,
+    });
+
+    return {
+      serverSeed,
+      serverSeedHash: this.props.serverSeedHash,
+      clientSeed: this.props.clientSeed,
+      nonce: this.props.nonce,
+      algorithm: provablyFairService.algorithm,
+      crashPoint,
+    };
+  }
+
+  isServerSeedRevealed(): boolean {
+    return this.props.serverSeed !== null;
   }
 
   get id(): RoundId {
@@ -187,6 +266,10 @@ export class Round {
     return this.props.crashPoint;
   }
 
+  get bettingStartedAt(): Date {
+    return this.props.bettingStartedAt;
+  }
+
   get bettingEndsAt(): Date {
     return this.props.bettingEndsAt;
   }
@@ -205,6 +288,20 @@ export class Round {
 
   get bets(): readonly Bet[] {
     return this.props.bets;
+  }
+
+  private revealHiddenServerSeed(): void {
+    if (this.props.hiddenServerSeed) {
+      this.props.serverSeed = this.props.hiddenServerSeed;
+    }
+  }
+
+  private requireRevealedServerSeed(): string {
+    if (!this.props.serverSeed) {
+      throw new Error("Server seed is not revealed yet");
+    }
+
+    return this.props.serverSeed;
   }
 
   private transitionTo(target: RoundStatus): void {

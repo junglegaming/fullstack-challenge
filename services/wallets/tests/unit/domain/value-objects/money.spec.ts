@@ -17,6 +17,17 @@ describe("Money", () => {
     expect(money.toDisplayString()).toBe("1000.00");
   });
 
+  it("creates money from decimal string", () => {
+    const money = Money.fromDecimalString("1000.00");
+
+    expect(money.amountInCents).toBe(100000n);
+    expect(money.toDisplayString()).toBe("1000.00");
+  });
+
+  it("rejects invalid decimal string", () => {
+    expect(() => Money.fromDecimalString("10.5")).toThrow(InvalidMoneyAmountError);
+  });
+
   it("rejects negative cents", () => {
     expect(() => Money.fromCents(-1n)).toThrow(InvalidMoneyAmountError);
   });

@@ -13,8 +13,9 @@ import { PlayerId } from "../../../../src/domain/value-objects/player-id";
 describe("Round", () => {
   const playerOne = PlayerId.create("player-1");
   const playerTwo = PlayerId.create("player-2");
-  const bettingEndsAt = new Date("2026-06-14T12:00:10.000Z");
+  const bettingStartedAt = new Date("2026-06-14T12:00:00.000Z");
   const bettingOpenAt = new Date("2026-06-14T12:00:00.000Z");
+  const bettingEndsAt = new Date("2026-06-14T12:00:10.000Z");
   const runningAt = new Date("2026-06-14T12:00:11.000Z");
   const crashedAt = new Date("2026-06-14T12:00:20.000Z");
   const settledAt = new Date("2026-06-14T12:00:21.000Z");
@@ -25,6 +26,7 @@ describe("Round", () => {
       clientSeed: "client-seed",
       nonce: 1,
       crashPoint: Multiplier.fromBasisPoints(300),
+      bettingStartedAt,
       bettingEndsAt,
     });
   }

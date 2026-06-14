@@ -36,6 +36,10 @@ export class Multiplier {
   }
 
   toDisplayString(): string {
+    return this.toDecimalString();
+  }
+
+  toDecimalString(): string {
     const whole = Math.floor(this.basisPoints / 100);
     const fraction = this.basisPoints % 100;
 

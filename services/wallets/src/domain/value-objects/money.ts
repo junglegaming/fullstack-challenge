@@ -23,6 +23,15 @@ export class Money {
     return Money.fromCents(BigInt(value));
   }
 
+  static fromDecimalString(value: string): Money {
+    if (!/^\d+\.\d{2}$/.test(value)) {
+      throw new InvalidMoneyAmountError("Money amount must use decimal format with 2 fraction digits");
+    }
+
+    const [whole, fraction] = value.split(".");
+    return Money.fromCents(BigInt(`${whole}${fraction}`));
+  }
+
   get amountInCents(): bigint {
     return this.cents;
   }

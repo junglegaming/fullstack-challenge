@@ -4,7 +4,7 @@ export type WalletResponseDto = {
   id: string;
   playerId: string;
   balanceCents: string;
-  balance: string;
+  balanceFormatted: string;
 };
 
 export function toWalletResponseDto(wallet: Wallet): WalletResponseDto {
@@ -12,6 +12,6 @@ export function toWalletResponseDto(wallet: Wallet): WalletResponseDto {
     id: wallet.id.toString(),
     playerId: wallet.playerId.toString(),
     balanceCents: wallet.balance.amountInCents.toString(),
-    balance: wallet.balance.toDisplayString(),
+    balanceFormatted: wallet.balance.toDisplayString(),
   };
 }

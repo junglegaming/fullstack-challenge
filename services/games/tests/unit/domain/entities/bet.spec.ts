@@ -36,6 +36,12 @@ describe("Bet", () => {
     expect(() => createPendingBet(100001n)).toThrow(InvalidBetAmountError);
   });
 
+  it("accepts bet through markAccepted alias", () => {
+    const bet = createPendingBet(1000n);
+    bet.markAccepted();
+    expect(bet.status).toBe(BetStatus.PLACED);
+  });
+
   it("transitions from pending debit to placed", () => {
     const bet = createPendingBet(1000n);
 

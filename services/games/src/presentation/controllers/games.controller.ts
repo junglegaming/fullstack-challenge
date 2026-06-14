@@ -7,4 +7,7 @@ export class GamesController {
   check(): HealthCheckResponseDto {
     return { status: "ok", service: "games" };
   }
+
+  // Planned: GET /games/rounds/:roundId/verify
+  // Returns RoundVerificationResponseDto via GetRoundVerificationUseCase
 }

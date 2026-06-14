@@ -65,6 +65,10 @@ export class Bet {
     this.transitionTo(BetStatus.PLACED, [BetStatus.PENDING_DEBIT]);
   }
 
+  markAccepted(): void {
+    this.markPlaced();
+  }
+
   markRejected(): void {
     this.transitionTo(BetStatus.REJECTED, [BetStatus.PENDING_DEBIT]);
   }
