@@ -31,3 +31,9 @@ yarn-error.log*
 
 # Test coverage
 coverage/
+
+# Cursor Rules
+.cursor/
+
+# Specs Files
+specs/
