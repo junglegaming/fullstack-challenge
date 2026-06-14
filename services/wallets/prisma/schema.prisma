@@ -30,8 +30,22 @@ model LedgerTransaction {
   balanceAfterCents BigInt
   createdAt         DateTime              @default(now())
 
+  processedMessage ProcessedMessage?
+
   @@index([walletId])
   @@map("ledger_transactions")
+}
+
+model ProcessedMessage {
+  id                  String            @id @default(cuid())
+  idempotencyKey      String            @unique
+  messageType         String
+  ledgerTransactionId String            @unique
+  ledgerTransaction   LedgerTransaction @relation(fields: [ledgerTransactionId], references: [id], onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+
+  @@index([messageType])
+  @@map("processed_messages")
 }
 
 enum LedgerTransactionType {

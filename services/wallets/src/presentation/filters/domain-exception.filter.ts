@@ -28,6 +28,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
         return HttpStatus.NOT_FOUND;
       case "INVALID_MONEY_AMOUNT":
         return HttpStatus.BAD_REQUEST;
+      case "INSUFFICIENT_BALANCE":
+        return HttpStatus.BAD_REQUEST;
       default:
         return HttpStatus.UNPROCESSABLE_ENTITY;
     }

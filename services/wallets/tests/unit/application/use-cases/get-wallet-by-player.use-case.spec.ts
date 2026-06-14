@@ -1,22 +1,10 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { WalletRepository } from "../../../../src/application/ports/wallet.repository";
 import { GetWalletByPlayerUseCase } from "../../../../src/application/use-cases/get-wallet-by-player.use-case";
 import { Wallet } from "../../../../src/domain/entities/wallet";
 import { WalletNotFoundError } from "../../../../src/domain/errors/wallet-not-found.error";
 import { Money } from "../../../../src/domain/value-objects/money";
 import { PlayerId } from "../../../../src/domain/value-objects/player-id";
-
-class InMemoryWalletRepository implements WalletRepository {
-  private wallets = new Map<string, Wallet>();
-
-  async findByPlayerId(playerId: PlayerId): Promise<Wallet | null> {
-    return this.wallets.get(playerId.toString()) ?? null;
-  }
-
-  async save(wallet: Wallet): Promise<void> {
-    this.wallets.set(wallet.playerId.toString(), wallet);
-  }
-}
+import { InMemoryWalletRepository } from "../../../support/in-memory-wallet.repository";
 
 describe("GetWalletByPlayerUseCase", () => {
   let repository: InMemoryWalletRepository;
