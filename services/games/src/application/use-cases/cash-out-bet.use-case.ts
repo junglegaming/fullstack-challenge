@@ -1,21 +1,28 @@
 import { randomUUID } from "node:crypto";
+import type { GameRoundEngineConfig } from "../config/game-round-engine.config";
 import type { CashOutResponseDto } from "../dtos/bet-command.dto";
 import { createMessageEnvelope } from "../messaging/message-envelope";
 import { WALLET_CREDIT_REQUESTED } from "../messaging/wallet-events";
 import type { GameRoundsRepository } from "../ports/game-rounds.repository";
 import type { WalletCommandPublisher } from "../ports/wallet-command.publisher";
-import { Multiplier } from "../../domain/value-objects/multiplier";
 import { PlayerId } from "../../domain/value-objects/player-id";
 
 export class CashOutBetUseCase {
   constructor(
     private readonly roundsRepository: GameRoundsRepository,
     private readonly walletCommandPublisher: WalletCommandPublisher,
+    private readonly engineConfig?: Pick<
+      GameRoundEngineConfig,
+      "multiplierGrowthBasisPointsPerSecond"
+    >,
   ) {}
 
   async execute(input: { playerId: string }): Promise<CashOutResponseDto> {
     const round = await this.roundsRepository.findCurrent();
-    const currentMultiplier = getCurrentMultiplier();
+    const currentMultiplier = round.getCurrentMultiplier(new Date(), {
+      growthBasisPointsPerSecond:
+        this.engineConfig?.multiplierGrowthBasisPointsPerSecond,
+    });
     const bet = round.cashOut({
       playerId: PlayerId.create(input.playerId),
       currentMultiplier,
@@ -47,9 +54,4 @@ export class CashOutBetUseCase {
       idempotencyKey,
     };
   }
-}
-
-function getCurrentMultiplier(): Multiplier {
-  // TODO: replace with the real server-time multiplier curve when the round loop is implemented.
-  return Multiplier.one();
 }

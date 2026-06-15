@@ -1,8 +1,14 @@
 import { Module } from "@nestjs/common";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import {
+  GAME_ROUND_ENGINE_CONFIG,
+  type GameRoundEngineConfig,
+  resolveGameRoundEngineConfig,
+} from "./application/config/game-round-engine.config";
 import { GAME_ROUNDS_REPOSITORY } from "./application/ports/game-rounds.repository";
 import type { GameRoundsRepository } from "./application/ports/game-rounds.repository";
 import { WALLET_COMMAND_PUBLISHER } from "./application/ports/wallet-command.publisher";
+import { GameRoundEngineService } from "./application/services/game-round-engine.service";
 import { CashOutBetUseCase } from "./application/use-cases/cash-out-bet.use-case";
 import { GetCurrentRoundUseCase } from "./application/use-cases/get-current-round.use-case";
 import { GetPlayerBetsUseCase } from "./application/use-cases/get-player-bets.use-case";
@@ -39,7 +45,12 @@ import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit
   controllers: [GamesController, WalletDebitResultConsumer],
   providers: [
     ProvablyFairService,
+    {
+      provide: GAME_ROUND_ENGINE_CONFIG,
+      useFactory: resolveGameRoundEngineConfig,
+    },
     InMemoryGameRoundsRepository,
+    GameRoundEngineService,
     RabbitMqWalletCommandPublisher,
     {
       provide: GAME_ROUNDS_REPOSITORY,
@@ -85,11 +96,20 @@ import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit
     },
     {
       provide: CashOutBetUseCase,
-      inject: [GAME_ROUNDS_REPOSITORY, WALLET_COMMAND_PUBLISHER],
+      inject: [
+        GAME_ROUNDS_REPOSITORY,
+        WALLET_COMMAND_PUBLISHER,
+        GAME_ROUND_ENGINE_CONFIG,
+      ],
       useFactory: (
         roundsRepository: GameRoundsRepository,
         walletCommandPublisher: RabbitMqWalletCommandPublisher,
-      ) => new CashOutBetUseCase(roundsRepository, walletCommandPublisher),
+        engineConfig: GameRoundEngineConfig,
+      ) => new CashOutBetUseCase(
+        roundsRepository,
+        walletCommandPublisher,
+        engineConfig,
+      ),
     },
     {
       provide: HandleWalletDebitSucceededUseCase,

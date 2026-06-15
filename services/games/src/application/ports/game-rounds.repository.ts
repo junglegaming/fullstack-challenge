@@ -16,4 +16,5 @@ export interface GameRoundsRepository {
   listHistory(input: { page: number; pageSize: number }): Promise<RoundHistoryPage>;
   findBetsByPlayer(playerId: PlayerId): Promise<Bet[]>;
   save(round: Round): Promise<void>;
+  archiveCurrentAndStart(nextRound: Round): Promise<void>;
 }

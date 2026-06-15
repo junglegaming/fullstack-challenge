@@ -144,6 +144,35 @@ describe("Round", () => {
     expect(cashedOutBet.payout?.amountInCents).toBe(1500n);
   });
 
+  it("calculates current multiplier from server time", () => {
+    const round = createRound();
+
+    expect(round.getCurrentMultiplier(bettingOpenAt).toDecimalString()).toBe("1.00");
+
+    round.start(runningAt);
+
+    expect(
+      round
+        .getCurrentMultiplier(new Date(runningAt.getTime() + 1500), {
+          growthBasisPointsPerSecond: 100,
+        })
+        .toDecimalString(),
+    ).toBe("2.50");
+  });
+
+  it("caps current multiplier at crash point", () => {
+    const round = createRound();
+    round.start(runningAt);
+
+    expect(
+      round
+        .getCurrentMultiplier(new Date(runningAt.getTime() + 10_000), {
+          growthBasisPointsPerSecond: 100,
+        })
+        .toDecimalString(),
+    ).toBe("3.00");
+  });
+
   it("rejects cash out without a placed bet", () => {
     const round = createRound();
     round.start(runningAt);

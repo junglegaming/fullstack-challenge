@@ -1,4 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, Optional } from "@nestjs/common";
+import {
+  GAME_ROUND_ENGINE_CONFIG,
+  type GameRoundEngineConfig,
+} from "../../application/config/game-round-engine.config";
 import type {
   GameRoundsRepository,
   RoundHistoryPage,
@@ -16,10 +20,15 @@ import { RoundId } from "../../domain/value-objects/round-id";
  */
 @Injectable()
 export class InMemoryGameRoundsRepository implements GameRoundsRepository {
-  private readonly currentRound: Round;
+  private currentRound: Round;
   private readonly history: Round[];
 
-  constructor(private readonly provablyFairService: ProvablyFairService) {
+  constructor(
+    private readonly provablyFairService: ProvablyFairService,
+    @Optional()
+    @Inject(GAME_ROUND_ENGINE_CONFIG)
+    private readonly config?: GameRoundEngineConfig,
+  ) {
     this.currentRound = this.createCurrentRound();
     this.history = [this.createSettledHistoryRound()];
   }
@@ -52,6 +61,11 @@ export class InMemoryGameRoundsRepository implements GameRoundsRepository {
     // Rounds are mutable domain objects in this temporary repository.
   }
 
+  async archiveCurrentAndStart(nextRound: Round): Promise<void> {
+    this.history.unshift(this.currentRound);
+    this.currentRound = nextRound;
+  }
+
   private createCurrentRound(): Round {
     const now = new Date();
 
@@ -60,8 +74,12 @@ export class InMemoryGameRoundsRepository implements GameRoundsRepository {
       clientSeed: DEFAULT_CLIENT_SEED,
       nonce: 1,
       bettingStartedAt: now,
-      bettingEndsAt: new Date(now.getTime() + 10 * 60 * 1000),
+      bettingEndsAt: new Date(now.getTime() + this.getBettingPhaseMs()),
     });
+  }
+
+  private getBettingPhaseMs(): number {
+    return this.config?.bettingPhaseMs ?? 10_000;
   }
 
   private createSettledHistoryRound(): Round {

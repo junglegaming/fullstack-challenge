@@ -210,6 +210,7 @@ describe("Game API use cases", () => {
     const result = await new CashOutBetUseCase(
       repository,
       walletCommandPublisher,
+      { multiplierGrowthBasisPointsPerSecond: 0 },
     ).execute({
       playerId: "player-1",
     });

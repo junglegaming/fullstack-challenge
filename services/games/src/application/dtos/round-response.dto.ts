@@ -1,6 +1,5 @@
 import { Bet } from "../../domain/entities/bet";
 import { Round } from "../../domain/entities/round";
-import { Multiplier } from "../../domain/value-objects/multiplier";
 
 export type BetSummaryDto = {
   id: string;
@@ -64,7 +63,7 @@ export function toCurrentRoundDto(round: Round): CurrentRoundDto {
     bettingEndsAt: round.bettingEndsAt.toISOString(),
     startedAt: round.startedAt?.toISOString() ?? null,
     crashedAt: round.crashedAt?.toISOString() ?? null,
-    currentMultiplier: getDisplayMultiplier(round).toDecimalString(),
+    currentMultiplier: round.getCurrentMultiplier(new Date()).toDecimalString(),
     bets: round.bets.map(toBetSummaryDto),
   };
 }
@@ -79,11 +78,3 @@ export function toRoundHistoryItemDto(round: Round): RoundHistoryItemDto {
   };
 }
 
-function getDisplayMultiplier(round: Round): Multiplier {
-  if (round.crashedAt) {
-    return round.crashPoint;
-  }
-
-  // TODO: replace with the real time-based multiplier curve when the round engine is added.
-  return Multiplier.one();
-}

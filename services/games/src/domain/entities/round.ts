@@ -38,6 +38,8 @@ const ROUND_TRANSITIONS: Record<RoundStatus, RoundStatus[]> = {
   [RoundStatus.SETTLED]: [],
 };
 
+const DEFAULT_MULTIPLIER_GROWTH_BPS_PER_SECOND = 100;
+
 export class Round {
   private constructor(private props: RoundProps) {}
 
@@ -197,6 +199,40 @@ export class Round {
   settle(now: Date): void {
     this.transitionTo(RoundStatus.SETTLED);
     this.props.settledAt = now;
+  }
+
+  getCurrentMultiplier(
+    now: Date,
+    input?: { growthBasisPointsPerSecond?: number },
+  ): Multiplier {
+    if (
+      this.props.status === RoundStatus.CRASHED ||
+      this.props.status === RoundStatus.SETTLED
+    ) {
+      return this.props.crashPoint;
+    }
+
+    if (!this.props.startedAt || this.props.status === RoundStatus.BETTING) {
+      return Multiplier.one();
+    }
+
+    const growthBasisPointsPerSecond =
+      input?.growthBasisPointsPerSecond ??
+      DEFAULT_MULTIPLIER_GROWTH_BPS_PER_SECOND;
+    const elapsedMs = Math.max(
+      0,
+      now.getTime() - this.props.startedAt.getTime(),
+    );
+    const gainedBasisPoints = Math.floor(
+      (elapsedMs * growthBasisPointsPerSecond) / 1000,
+    );
+    const currentBasisPoints = 100 + gainedBasisPoints;
+
+    if (currentBasisPoints > this.props.crashPoint.valueInBasisPoints) {
+      return this.props.crashPoint;
+    }
+
+    return Multiplier.fromBasisPoints(currentBasisPoints);
   }
 
   revealServerSeed(serverSeed: string, provablyFairService: ProvablyFairService): void {
