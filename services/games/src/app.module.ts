@@ -85,9 +85,11 @@ import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit
     },
     {
       provide: CashOutBetUseCase,
-      inject: [GAME_ROUNDS_REPOSITORY],
-      useFactory: (roundsRepository: GameRoundsRepository) =>
-        new CashOutBetUseCase(roundsRepository),
+      inject: [GAME_ROUNDS_REPOSITORY, WALLET_COMMAND_PUBLISHER],
+      useFactory: (
+        roundsRepository: GameRoundsRepository,
+        walletCommandPublisher: RabbitMqWalletCommandPublisher,
+      ) => new CashOutBetUseCase(roundsRepository, walletCommandPublisher),
     },
     {
       provide: HandleWalletDebitSucceededUseCase,

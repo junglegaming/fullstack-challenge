@@ -5,6 +5,8 @@ import { InternalDebitWalletUseCase } from "../../../../src/application/use-case
 import type { WalletEventPublisher } from "../../../../src/application/ports/wallet-event.publisher";
 import {
   WALLET_DEBIT_REQUESTED,
+  type WalletCreditFailedEnvelope,
+  type WalletCreditSucceededEnvelope,
   type WalletDebitFailedEnvelope,
   type WalletDebitSucceededEnvelope,
 } from "../../../../src/application/messaging/wallet-events";
@@ -26,6 +28,14 @@ describe("HandleWalletDebitRequestedUseCase", () => {
     async publishDebitFailed(envelope: WalletDebitFailedEnvelope): Promise<void> {
       this.failed.push(envelope);
     }
+
+    async publishCreditSucceeded(
+      _envelope: WalletCreditSucceededEnvelope,
+    ): Promise<void> {}
+
+    async publishCreditFailed(
+      _envelope: WalletCreditFailedEnvelope,
+    ): Promise<void> {}
   }
 
   let repository: InMemoryWalletRepository;

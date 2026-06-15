@@ -1,11 +1,17 @@
 import { randomUUID } from "node:crypto";
 import type { CashOutResponseDto } from "../dtos/bet-command.dto";
+import { createMessageEnvelope } from "../messaging/message-envelope";
+import { WALLET_CREDIT_REQUESTED } from "../messaging/wallet-events";
 import type { GameRoundsRepository } from "../ports/game-rounds.repository";
+import type { WalletCommandPublisher } from "../ports/wallet-command.publisher";
 import { Multiplier } from "../../domain/value-objects/multiplier";
 import { PlayerId } from "../../domain/value-objects/player-id";
 
 export class CashOutBetUseCase {
-  constructor(private readonly roundsRepository: GameRoundsRepository) {}
+  constructor(
+    private readonly roundsRepository: GameRoundsRepository,
+    private readonly walletCommandPublisher: WalletCommandPublisher,
+  ) {}
 
   async execute(input: { playerId: string }): Promise<CashOutResponseDto> {
     const round = await this.roundsRepository.findCurrent();
@@ -15,15 +21,29 @@ export class CashOutBetUseCase {
       currentMultiplier,
     });
     const idempotencyKey = randomUUID();
+    const payoutCents = bet.payout?.amountInCents.toString() ?? "0";
 
-    // Temporary wallet mock: the future broker flow will publish wallet.credit.requested.
     await this.roundsRepository.save(round);
+    await this.walletCommandPublisher.publishCreditRequested(
+      createMessageEnvelope({
+        type: WALLET_CREDIT_REQUESTED,
+        producer: "games-service",
+        idempotencyKey,
+        payload: {
+          playerId: input.playerId,
+          roundId: round.id.toString(),
+          betId: bet.id.toString(),
+          amountCents: payoutCents,
+          reason: "BET_CASHOUT",
+        },
+      }),
+    );
 
     return {
       status: "PENDING",
       roundId: round.id.toString(),
       currentMultiplier: currentMultiplier.toDecimalString(),
-      estimatedPayoutCents: bet.payout?.amountInCents.toString() ?? "0",
+      estimatedPayoutCents: payoutCents,
       idempotencyKey,
     };
   }

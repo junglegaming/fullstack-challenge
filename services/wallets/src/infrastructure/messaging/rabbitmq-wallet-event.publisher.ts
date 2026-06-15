@@ -3,8 +3,12 @@ import { ClientProxy } from "@nestjs/microservices";
 import { firstValueFrom } from "rxjs";
 import type { WalletEventPublisher } from "../../application/ports/wallet-event.publisher";
 import {
+  WALLET_CREDIT_FAILED,
+  WALLET_CREDIT_SUCCEEDED,
   WALLET_DEBIT_FAILED,
   WALLET_DEBIT_SUCCEEDED,
+  type WalletCreditFailedEnvelope,
+  type WalletCreditSucceededEnvelope,
   type WalletDebitFailedEnvelope,
   type WalletDebitSucceededEnvelope,
 } from "../../application/messaging/wallet-events";
@@ -23,5 +27,15 @@ export class RabbitMqWalletEventPublisher implements WalletEventPublisher {
 
   async publishDebitFailed(envelope: WalletDebitFailedEnvelope): Promise<void> {
     await firstValueFrom(this.client.emit(WALLET_DEBIT_FAILED, envelope));
+  }
+
+  async publishCreditSucceeded(
+    envelope: WalletCreditSucceededEnvelope,
+  ): Promise<void> {
+    await firstValueFrom(this.client.emit(WALLET_CREDIT_SUCCEEDED, envelope));
+  }
+
+  async publishCreditFailed(envelope: WalletCreditFailedEnvelope): Promise<void> {
+    await firstValueFrom(this.client.emit(WALLET_CREDIT_FAILED, envelope));
   }
 }

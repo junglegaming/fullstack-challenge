@@ -3,6 +3,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
 import { Money } from "./domain/value-objects/money";
 import { CreateWalletUseCase } from "./application/use-cases/create-wallet.use-case";
 import { GetWalletByPlayerUseCase } from "./application/use-cases/get-wallet-by-player.use-case";
+import { HandleWalletCreditRequestedUseCase } from "./application/use-cases/handle-wallet-credit-requested.use-case";
 import { HandleWalletDebitRequestedUseCase } from "./application/use-cases/handle-wallet-debit-requested.use-case";
 import { InternalCreditWalletUseCase } from "./application/use-cases/internal-credit-wallet.use-case";
 import { InternalDebitWalletUseCase } from "./application/use-cases/internal-debit-wallet.use-case";
@@ -82,6 +83,17 @@ function resolveInitialBalance(): Money {
         walletEventPublisher: RabbitMqWalletEventPublisher,
       ) => new HandleWalletDebitRequestedUseCase(
         debitWalletUseCase,
+        walletEventPublisher,
+      ),
+    },
+    {
+      provide: HandleWalletCreditRequestedUseCase,
+      inject: [InternalCreditWalletUseCase, WALLET_EVENT_PUBLISHER],
+      useFactory: (
+        creditWalletUseCase: InternalCreditWalletUseCase,
+        walletEventPublisher: RabbitMqWalletEventPublisher,
+      ) => new HandleWalletCreditRequestedUseCase(
+        creditWalletUseCase,
         walletEventPublisher,
       ),
     },

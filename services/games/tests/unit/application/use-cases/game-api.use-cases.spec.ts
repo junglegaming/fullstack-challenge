@@ -8,7 +8,10 @@ import { CashOutBetUseCase } from "../../../../src/application/use-cases/cash-ou
 import { HandleWalletDebitFailedUseCase } from "../../../../src/application/use-cases/handle-wallet-debit-failed.use-case";
 import { HandleWalletDebitSucceededUseCase } from "../../../../src/application/use-cases/handle-wallet-debit-succeeded.use-case";
 import type { WalletCommandPublisher } from "../../../../src/application/ports/wallet-command.publisher";
-import type { WalletDebitRequestedEnvelope } from "../../../../src/application/messaging/wallet-events";
+import type {
+  WalletCreditRequestedEnvelope,
+  WalletDebitRequestedEnvelope,
+} from "../../../../src/application/messaging/wallet-events";
 import {
   WALLET_DEBIT_FAILED,
   WALLET_DEBIT_SUCCEEDED,
@@ -20,11 +23,18 @@ import { RoundStatus } from "../../../../src/domain/value-objects/round-status";
 describe("Game API use cases", () => {
   class FakeWalletCommandPublisher implements WalletCommandPublisher {
     readonly debitRequests: WalletDebitRequestedEnvelope[] = [];
+    readonly creditRequests: WalletCreditRequestedEnvelope[] = [];
 
     async publishDebitRequested(
       envelope: WalletDebitRequestedEnvelope,
     ): Promise<void> {
       this.debitRequests.push(envelope);
+    }
+
+    async publishCreditRequested(
+      envelope: WalletCreditRequestedEnvelope,
+    ): Promise<void> {
+      this.creditRequests.push(envelope);
     }
   }
 
@@ -169,7 +179,7 @@ describe("Game API use cases", () => {
     expect(bets.items[0]?.status).toBe("REJECTED");
   });
 
-  it("cashs out a placed bet with temporary wallet credit mock", async () => {
+  it("cashs out a placed bet and publishes wallet.credit.requested", async () => {
     const { repository, walletCommandPublisher } = createFixture();
     await new PlaceBetUseCase(repository, walletCommandPublisher).execute({
       playerId: "player-1",
@@ -197,12 +207,22 @@ describe("Game API use cases", () => {
     const currentRound = await repository.findCurrent();
     currentRound.start(new Date("2026-06-14T12:00:11.000Z"));
 
-    const result = await new CashOutBetUseCase(repository).execute({
+    const result = await new CashOutBetUseCase(
+      repository,
+      walletCommandPublisher,
+    ).execute({
       playerId: "player-1",
     });
 
     expect(result.status).toBe("PENDING");
     expect(result.currentMultiplier).toBe("1.00");
     expect(result.estimatedPayoutCents).toBe("1000");
+    expect(walletCommandPublisher.creditRequests).toHaveLength(1);
+    expect(walletCommandPublisher.creditRequests[0]?.type).toBe(
+      "wallet.credit.requested",
+    );
+    expect(walletCommandPublisher.creditRequests[0]?.payload.amountCents).toBe(
+      "1000",
+    );
   });
 });
