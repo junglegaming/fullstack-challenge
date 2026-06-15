@@ -3,6 +3,7 @@ import type { CashOutResponse } from "./api-client";
 import { ApiError } from "./http";
 import { E2E_CONFIG } from "./config";
 import { sleep, waitFor } from "./poll";
+import { resetTestPlayerWalletBalance } from "./wallet-reset";
 
 export async function waitForRoundStatus(
   client: E2EApiClient,
@@ -212,6 +213,8 @@ export async function ensureStackIsReady(client: E2EApiClient): Promise<void> {
 
     return null;
   }, { timeoutMs: 15_000 });
+
+  resetTestPlayerWalletBalance();
 
   await client.resolvePlayerId();
   await client.getCurrentRound();

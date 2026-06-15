@@ -4,6 +4,7 @@ import { E2EApiClient } from "./support/api-client";
 import { E2E_CONFIG } from "./support/config";
 import { ensureStackIsReady } from "./support/gameplay";
 import type { ApiErrorBody } from "./support/http";
+import { waitFor } from "./support/poll";
 
 setDefaultTimeout(120_000);
 
@@ -53,8 +54,20 @@ describe("Games API E2E", () => {
   });
 
   it("GET /games/rounds/:roundId/verify rejects unfinished current round", async () => {
-    const currentRound = await client.getCurrentRound();
-    const response = await client.verifyRoundRaw(currentRound.id);
+    const unfinishedRound = await waitFor("unfinished current round", async () => {
+      const currentRound = await client.getCurrentRound();
+
+      if (
+        currentRound.status === "BETTING" ||
+        currentRound.status === "RUNNING"
+      ) {
+        return currentRound;
+      }
+
+      return null;
+    });
+
+    const response = await client.verifyRoundRaw(unfinishedRound.id);
 
     expect(response.status).toBe(404);
 
