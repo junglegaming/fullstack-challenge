@@ -46,6 +46,7 @@
         "@types/node": "^25.9.3",
         "bun-types": "latest",
         "prisma": "^6.9.0",
+        "socket.io-client": "^4.8.3",
         "typescript": "^5.8.3",
       },
     },

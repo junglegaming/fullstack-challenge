@@ -20,13 +20,23 @@ export class WalletDebitResultConsumer {
   async handleDebitSucceeded(
     @Payload() envelope: WalletDebitSucceededEnvelope,
   ): Promise<void> {
-    await this.handleWalletDebitSucceededUseCase.execute(envelope);
+    try {
+      await this.handleWalletDebitSucceededUseCase.execute(envelope);
+    } catch (error) {
+      console.error("Failed to handle wallet.debit.succeeded", error);
+      throw error;
+    }
   }
 
   @EventPattern(WALLET_DEBIT_FAILED)
   async handleDebitFailed(
     @Payload() envelope: WalletDebitFailedEnvelope,
   ): Promise<void> {
-    await this.handleWalletDebitFailedUseCase.execute(envelope);
+    try {
+      await this.handleWalletDebitFailedUseCase.execute(envelope);
+    } catch (error) {
+      console.error("Failed to handle wallet.debit.failed", error);
+      throw error;
+    }
   }
 }
