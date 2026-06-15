@@ -7,6 +7,7 @@ import { PlaceBetUseCase } from "../../../../src/application/use-cases/place-bet
 import { CashOutBetUseCase } from "../../../../src/application/use-cases/cash-out-bet.use-case";
 import { HandleWalletDebitFailedUseCase } from "../../../../src/application/use-cases/handle-wallet-debit-failed.use-case";
 import { HandleWalletDebitSucceededUseCase } from "../../../../src/application/use-cases/handle-wallet-debit-succeeded.use-case";
+import type { GameRealtimePublisher } from "../../../../src/application/ports/game-realtime.publisher";
 import type { WalletCommandPublisher } from "../../../../src/application/ports/wallet-command.publisher";
 import type {
   WalletCreditRequestedEnvelope,
@@ -21,6 +22,28 @@ import { ProvablyFairService } from "../../../../src/domain/services/provably-fa
 import { RoundStatus } from "../../../../src/domain/value-objects/round-status";
 
 describe("Game API use cases", () => {
+  class FakeRealtimePublisher implements GameRealtimePublisher {
+    readonly events: string[] = [];
+
+    async publishRoundBettingStarted(): Promise<void> {}
+
+    async publishRoundStarted(): Promise<void> {}
+
+    async publishRoundMultiplierTick(): Promise<void> {}
+
+    async publishBetAccepted(): Promise<void> {
+      this.events.push("bet.accepted");
+    }
+
+    async publishBetCashedOut(): Promise<void> {
+      this.events.push("bet.cashed_out");
+    }
+
+    async publishRoundCrashed(): Promise<void> {}
+
+    async publishRoundSettled(): Promise<void> {}
+  }
+
   class FakeWalletCommandPublisher implements WalletCommandPublisher {
     readonly debitRequests: WalletDebitRequestedEnvelope[] = [];
     readonly creditRequests: WalletCreditRequestedEnvelope[] = [];
@@ -42,11 +65,13 @@ describe("Game API use cases", () => {
     const provablyFairService = new ProvablyFairService();
     const repository = new InMemoryGameRoundsRepository(provablyFairService);
     const walletCommandPublisher = new FakeWalletCommandPublisher();
+    const realtimePublisher = new FakeRealtimePublisher();
 
     return {
       provablyFairService,
       repository,
       walletCommandPublisher,
+      realtimePublisher,
     };
   }
 
@@ -91,7 +116,7 @@ describe("Game API use cases", () => {
   });
 
   it("places a bet and publishes wallet.debit.requested", async () => {
-    const { repository, walletCommandPublisher } = createFixture();
+    const { repository, walletCommandPublisher, realtimePublisher } = createFixture();
     const useCase = new PlaceBetUseCase(repository, walletCommandPublisher);
 
     const result = await useCase.execute({
@@ -113,14 +138,17 @@ describe("Game API use cases", () => {
   });
 
   it("accepts a pending bet when wallet debit succeeds", async () => {
-    const { repository, walletCommandPublisher } = createFixture();
+    const { repository, walletCommandPublisher, realtimePublisher } = createFixture();
     await new PlaceBetUseCase(repository, walletCommandPublisher).execute({
       playerId: "player-1",
       body: { amountCents: "1000" },
     });
     const request = walletCommandPublisher.debitRequests[0];
 
-    await new HandleWalletDebitSucceededUseCase(repository).execute({
+    await new HandleWalletDebitSucceededUseCase(
+      repository,
+      realtimePublisher,
+    ).execute({
       messageId: "wallet-result-1",
       type: WALLET_DEBIT_SUCCEEDED,
       version: 1,
@@ -144,10 +172,11 @@ describe("Game API use cases", () => {
     });
 
     expect(bets.items[0]?.status).toBe("PLACED");
+    expect(realtimePublisher.events).toContain("bet.accepted");
   });
 
   it("rejects a pending bet when wallet debit fails", async () => {
-    const { repository, walletCommandPublisher } = createFixture();
+    const { repository, walletCommandPublisher, realtimePublisher } = createFixture();
     await new PlaceBetUseCase(repository, walletCommandPublisher).execute({
       playerId: "player-1",
       body: { amountCents: "1000" },
@@ -180,13 +209,16 @@ describe("Game API use cases", () => {
   });
 
   it("cashs out a placed bet and publishes wallet.credit.requested", async () => {
-    const { repository, walletCommandPublisher } = createFixture();
+    const { repository, walletCommandPublisher, realtimePublisher } = createFixture();
     await new PlaceBetUseCase(repository, walletCommandPublisher).execute({
       playerId: "player-1",
       body: { amountCents: "1000" },
     });
     const request = walletCommandPublisher.debitRequests[0];
-    await new HandleWalletDebitSucceededUseCase(repository).execute({
+    await new HandleWalletDebitSucceededUseCase(
+      repository,
+      realtimePublisher,
+    ).execute({
       messageId: "wallet-result-1",
       type: WALLET_DEBIT_SUCCEEDED,
       version: 1,
@@ -211,6 +243,7 @@ describe("Game API use cases", () => {
       repository,
       walletCommandPublisher,
       { multiplierGrowthBasisPointsPerSecond: 0 },
+      realtimePublisher,
     ).execute({
       playerId: "player-1",
     });
@@ -225,5 +258,7 @@ describe("Game API use cases", () => {
     expect(walletCommandPublisher.creditRequests[0]?.payload.amountCents).toBe(
       "1000",
     );
+    expect(realtimePublisher.events).toContain("bet.accepted");
+    expect(realtimePublisher.events).toContain("bet.cashed_out");
   });
 });

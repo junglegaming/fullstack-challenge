@@ -5,6 +5,7 @@ import {
   type GameRoundEngineConfig,
   resolveGameRoundEngineConfig,
 } from "./application/config/game-round-engine.config";
+import { GAME_REALTIME_PUBLISHER } from "./application/ports/game-realtime.publisher";
 import { GAME_ROUNDS_REPOSITORY } from "./application/ports/game-rounds.repository";
 import type { GameRoundsRepository } from "./application/ports/game-rounds.repository";
 import { WALLET_COMMAND_PUBLISHER } from "./application/ports/wallet-command.publisher";
@@ -25,6 +26,7 @@ import {
 import { RabbitMqWalletCommandPublisher } from "./infrastructure/messaging/rabbitmq-wallet-command.publisher";
 import { InMemoryGameRoundsRepository } from "./infrastructure/persistence/in-memory-game-rounds.repository";
 import { GamesController } from "./presentation/controllers/games.controller";
+import { GameRealtimeGateway } from "./presentation/gateways/game-realtime.gateway";
 import { PlaceBetUseCase } from "./application/use-cases/place-bet.use-case";
 import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit-result.consumer";
 
@@ -52,9 +54,14 @@ import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit
     InMemoryGameRoundsRepository,
     GameRoundEngineService,
     RabbitMqWalletCommandPublisher,
+    GameRealtimeGateway,
     {
       provide: GAME_ROUNDS_REPOSITORY,
       useExisting: InMemoryGameRoundsRepository,
+    },
+    {
+      provide: GAME_REALTIME_PUBLISHER,
+      useExisting: GameRealtimeGateway,
     },
     {
       provide: WALLET_COMMAND_PUBLISHER,
@@ -100,22 +107,30 @@ import { WalletDebitResultConsumer } from "./presentation/messaging/wallet-debit
         GAME_ROUNDS_REPOSITORY,
         WALLET_COMMAND_PUBLISHER,
         GAME_ROUND_ENGINE_CONFIG,
+        GAME_REALTIME_PUBLISHER,
       ],
       useFactory: (
         roundsRepository: GameRoundsRepository,
         walletCommandPublisher: RabbitMqWalletCommandPublisher,
         engineConfig: GameRoundEngineConfig,
+        realtimePublisher: GameRealtimeGateway,
       ) => new CashOutBetUseCase(
         roundsRepository,
         walletCommandPublisher,
         engineConfig,
+        realtimePublisher,
       ),
     },
     {
       provide: HandleWalletDebitSucceededUseCase,
-      inject: [GAME_ROUNDS_REPOSITORY],
-      useFactory: (roundsRepository: GameRoundsRepository) =>
-        new HandleWalletDebitSucceededUseCase(roundsRepository),
+      inject: [GAME_ROUNDS_REPOSITORY, GAME_REALTIME_PUBLISHER],
+      useFactory: (
+        roundsRepository: GameRoundsRepository,
+        realtimePublisher: GameRealtimeGateway,
+      ) => new HandleWalletDebitSucceededUseCase(
+        roundsRepository,
+        realtimePublisher,
+      ),
     },
     {
       provide: HandleWalletDebitFailedUseCase,

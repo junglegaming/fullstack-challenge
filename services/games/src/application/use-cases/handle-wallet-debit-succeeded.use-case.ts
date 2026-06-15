@@ -1,11 +1,15 @@
 import type { WalletDebitSucceededEnvelope } from "../messaging/wallet-events";
+import type { GameRealtimePublisher } from "../ports/game-realtime.publisher";
 import type { GameRoundsRepository } from "../ports/game-rounds.repository";
 import { BetId } from "../../domain/value-objects/bet-id";
 import { BetStatus } from "../../domain/value-objects/round-status";
 import { RoundId } from "../../domain/value-objects/round-id";
 
 export class HandleWalletDebitSucceededUseCase {
-  constructor(private readonly roundsRepository: GameRoundsRepository) {}
+  constructor(
+    private readonly roundsRepository: GameRoundsRepository,
+    private readonly realtimePublisher?: GameRealtimePublisher,
+  ) {}
 
   async execute(envelope: WalletDebitSucceededEnvelope): Promise<void> {
     const round = await this.roundsRepository.findById(
@@ -31,7 +35,13 @@ export class HandleWalletDebitSucceededUseCase {
       throw new Error(`Cannot accept bet from status ${bet.status}`);
     }
 
-    round.confirmBetPlaced(betId);
+    const acceptedBet = round.confirmBetPlaced(betId);
     await this.roundsRepository.save(round);
+    await this.realtimePublisher?.publishBetAccepted({
+      roundId: round.id.toString(),
+      betId: acceptedBet.id.toString(),
+      playerId: acceptedBet.playerId.toString(),
+      amountCents: acceptedBet.amount.amountInCents.toString(),
+    });
   }
 }
