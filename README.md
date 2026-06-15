@@ -1,5 +1,7 @@
 # Desafio Full-stack - Crash Game 🎮
 
+> **Implementação entregue:** consulte [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) para setup zero-config, comandos de teste, credenciais, arquitetura, fluxo RabbitMQ, provably fair, trade-offs e limitações.
+
 ## Bem-vindo à Jungle Gaming 🦧
 
 A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
@@ -357,7 +359,7 @@ fullstack-challenge/
 cd services/games && bun test tests/unit
 cd services/wallets && bun test tests/unit
 cd services/games && bun test tests/e2e     # requer docker:up
-cd frontend && bun test
+cd frontend && bun run test
 ```
 
 ---
