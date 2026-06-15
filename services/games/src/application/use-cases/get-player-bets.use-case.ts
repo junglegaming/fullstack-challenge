@@ -1,14 +1,8 @@
-import { toBetSummaryDto } from "../dtos/round-response.dto";
-import type { BetSummaryDto } from "../dtos/round-response.dto";
+import { toBetSummaryDto, type PaginatedPlayerBetsDto } from "../dtos/round-response.dto";
 import type { GameRoundsRepository } from "../ports/game-rounds.repository";
 import { PlayerId } from "../../domain/value-objects/player-id";
 
-export type PaginatedPlayerBetsDto = {
-  items: BetSummaryDto[];
-  page: number;
-  pageSize: number;
-  total: number;
-};
+export type { PaginatedPlayerBetsDto };
 
 export class GetPlayerBetsUseCase {
   constructor(private readonly roundsRepository: GameRoundsRepository) {}

@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CashOutBetUseCase } from "../../application/use-cases/cash-out-bet.use-case";
 import { GetCurrentRoundUseCase } from "../../application/use-cases/get-current-round.use-case";
 import { GetPlayerBetsUseCase } from "../../application/use-cases/get-player-bets.use-case";
@@ -6,7 +17,7 @@ import { GetRoundHistoryUseCase } from "../../application/use-cases/get-round-hi
 import { GetRoundVerificationUseCase } from "../../application/use-cases/get-round-verification.use-case";
 import { PlaceBetUseCase } from "../../application/use-cases/place-bet.use-case";
 import type { PaginatedPlayerBetsDto } from "../../application/use-cases/get-player-bets.use-case";
-import type {
+import {
   CashOutResponseDto,
   PlaceBetCommandDto,
   PlaceBetResponseDto,
@@ -20,6 +31,7 @@ import { CurrentPlayer } from "../auth/current-player.decorator";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
 
+@ApiTags("games")
 @Controller()
 export class GamesController {
   constructor(
@@ -61,6 +73,7 @@ export class GamesController {
 
   @Get("games/bets/me")
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   async getMyBets(
     @CurrentPlayer() playerId: string,
     @Query("page") page?: string,
@@ -74,7 +87,10 @@ export class GamesController {
   }
 
   @Post("games/bet")
+  @HttpCode(HttpStatus.ACCEPTED)
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiResponse({ status: HttpStatus.ACCEPTED, type: PlaceBetResponseDto })
   async placeBet(
     @CurrentPlayer() playerId: string,
     @Body() body: PlaceBetCommandDto,
@@ -83,7 +99,10 @@ export class GamesController {
   }
 
   @Post("games/bet/cashout")
+  @HttpCode(HttpStatus.ACCEPTED)
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiResponse({ status: HttpStatus.ACCEPTED, type: CashOutResponseDto })
   async cashOut(@CurrentPlayer() playerId: string): Promise<CashOutResponseDto> {
     return this.cashOutBetUseCase.execute({ playerId });
   }

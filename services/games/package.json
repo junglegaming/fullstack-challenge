@@ -16,6 +16,7 @@
     "@nestjs/microservices": "^11.1.26",
     "@nestjs/platform-express": "^11.1.17",
     "@nestjs/platform-socket.io": "^11.1.26",
+    "@nestjs/swagger": "^11.4.4",
     "@nestjs/websockets": "^11.1.26",
     "@prisma/client": "^6.9.0",
     "amqp-connection-manager": "^5.0.0",
