@@ -8,11 +8,16 @@
   ],
   "scripts": {
     "postinstall": "bun run scripts/ensure-env.ts",
-    "docker:up": "bun run scripts/ensure-env.ts && docker compose up",
+    "docker:up": "bun run scripts/ensure-env.ts && docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f",
     "docker:validate": "bun run scripts/validate-docker-stack.ts",
-    "test:scripts": "bun test scripts"
+    "test:scripts": "bun test scripts",
+    "test:frontend": "bun run --cwd frontend test",
+    "test:games:unit": "bun run --cwd services/games test tests/unit",
+    "test:wallets:unit": "bun run --cwd services/wallets test tests/unit",
+    "test:games:e2e": "bun run --cwd services/games test:e2e",
+    "test:wallets:e2e": "bun run --cwd services/wallets test:e2e"
   },
   "devDependencies": {
     "bun-types": "latest"
