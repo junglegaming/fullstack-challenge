@@ -95,7 +95,7 @@ describe("GameRoundEngineService", () => {
     bettingPhaseMs: 1000,
     settlementDelayMs: 500,
     tickIntervalMs: 50,
-    multiplierGrowthBasisPointsPerSecond: 100,
+    multiplierGrowth: { growthBasisPointsPerSecond: 100 },
     autoStart: false,
   };
 

@@ -94,7 +94,7 @@ describe("HandleWalletCreditResultUseCases", () => {
     await new CashOutBetUseCase(
       repository,
       walletCommandPublisher,
-      { multiplierGrowthBasisPointsPerSecond: 0 },
+      { multiplierGrowth: { growthBasisPointsPerSecond: 0 } },
       realtimePublisher,
     ).execute({ playerId: "player-1" });
 

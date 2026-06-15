@@ -15,7 +15,10 @@ import {
   placeBet,
 } from "../services/api";
 import { getAccessToken } from "../services/auth";
+import { fromMultiplierGrowthPayload } from "../utils/multiplier-config";
+import { computeServerTimeOffsetMs } from "../utils/multiplier-growth";
 import { useGameSocket } from "../hooks/useGameSocket";
+import { useVisualMultiplier } from "../hooks/useVisualMultiplier";
 import { useGameStore } from "../stores/game-store";
 import { useToastStore } from "../stores/toast-store";
 
@@ -26,9 +29,11 @@ export function GamePage() {
   const roundBets = useGameStore((state) => state.roundBets);
   const history = useGameStore((state) => state.history);
   const setCurrentRound = useGameStore((state) => state.setCurrentRound);
+  const setMultiplierSync = useGameStore((state) => state.setMultiplierSync);
   const setHistory = useGameStore((state) => state.setHistory);
 
   useGameSocket();
+  useVisualMultiplier();
 
   const walletQuery = useQuery({
     queryKey: ["wallet"],
@@ -60,10 +65,25 @@ export function GamePage() {
   });
 
   useEffect(() => {
-    if (roundQuery.data) {
-      setCurrentRound(roundQuery.data);
+    if (!roundQuery.data) {
+      return;
     }
-  }, [roundQuery.data, setCurrentRound]);
+
+    setCurrentRound(roundQuery.data);
+
+    if (
+      roundQuery.data.status === "RUNNING" &&
+      roundQuery.data.multiplierGrowth &&
+      roundQuery.data.serverTime
+    ) {
+      setMultiplierSync({
+        multiplierGrowthConfig: fromMultiplierGrowthPayload(
+          roundQuery.data.multiplierGrowth,
+        ),
+        serverTimeOffsetMs: computeServerTimeOffsetMs(roundQuery.data.serverTime),
+      });
+    }
+  }, [roundQuery.data, setCurrentRound, setMultiplierSync]);
 
   useEffect(() => {
     if (historyQuery.data) {

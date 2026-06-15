@@ -7,9 +7,12 @@
     "frontend"
   ],
   "scripts": {
-    "docker:up": "docker compose up",
+    "postinstall": "bun run scripts/ensure-env.ts",
+    "docker:up": "bun run scripts/ensure-env.ts && docker compose up",
     "docker:down": "docker compose down",
-    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
+    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f",
+    "docker:validate": "bun run scripts/validate-docker-stack.ts",
+    "test:scripts": "bun test scripts"
   },
   "devDependencies": {
     "bun-types": "latest"

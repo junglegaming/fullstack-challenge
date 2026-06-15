@@ -156,7 +156,7 @@ describe("Round", () => {
     expect(
       round
         .getCurrentMultiplier(new Date(runningAt.getTime() + 1500), {
-          growthBasisPointsPerSecond: 100,
+          growthConfig: { growthBasisPointsPerSecond: 100 },
         })
         .toDecimalString(),
     ).toBe("2.50");
@@ -169,7 +169,7 @@ describe("Round", () => {
     expect(
       round
         .getCurrentMultiplier(new Date(runningAt.getTime() + 10_000), {
-          growthBasisPointsPerSecond: 100,
+          growthConfig: { growthBasisPointsPerSecond: 100 },
         })
         .toDecimalString(),
     ).toBe("3.00");

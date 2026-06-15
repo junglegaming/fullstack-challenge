@@ -19,6 +19,14 @@ export type BetSummary = {
   payoutCents: string | null;
 };
 
+export type MultiplierGrowthPayload = {
+  growthBasisPointsPerSecond: number;
+  boostAfterGainedBasisPoints?: number;
+  boostGrowthBasisPointsPerSecond?: number;
+  highBoostAfterGainedBasisPoints?: number;
+  highGrowthBasisPointsPerSecond?: number;
+};
+
 export type CurrentRound = {
   id: string;
   status: "BETTING" | "RUNNING" | "CRASHED" | "SETTLED";
@@ -29,6 +37,9 @@ export type CurrentRound = {
   startedAt: string | null;
   crashedAt: string | null;
   currentMultiplier: string;
+  baseMultiplier?: string;
+  multiplierGrowth?: MultiplierGrowthPayload;
+  serverTime?: string | null;
   bets: BetSummary[];
 };
 

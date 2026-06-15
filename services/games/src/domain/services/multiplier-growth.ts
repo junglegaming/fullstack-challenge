@@ -47,6 +47,13 @@ function buildGrowthSegments(config: MultiplierGrowthConfig): GrowthSegment[] {
   return segments;
 }
 
+export function calculateMultiplierBasisPoints(
+  elapsedMs: number,
+  config: MultiplierGrowthConfig,
+): number {
+  return 100 + calculateGainedBasisPoints(elapsedMs, config);
+}
+
 export function calculateGainedBasisPoints(
   elapsedMs: number,
   config: MultiplierGrowthConfig,

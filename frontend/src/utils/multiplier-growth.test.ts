@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateGainedBasisPoints,
+  calculateMultiplierBasisPoints,
   calculateMultiplierDisplay,
   calibrateStartedAtMs,
+  computeServerTimeOffsetMs,
+  getServerNowMs,
   interpolateMultiplierBetweenTicks,
   resolveRunningMultiplierDisplay,
 } from "./multiplier-growth";
@@ -15,7 +18,26 @@ const balancedConfig = {
   highGrowthBasisPointsPerSecond: 150,
 };
 
+const backendLinearConfig = {
+  growthBasisPointsPerSecond: 100,
+};
+
+const dockerLinearConfig = {
+  growthBasisPointsPerSecond: 40,
+};
+
 describe("multiplier growth", () => {
+  it("matches backend linear growth at 100 bps per second", () => {
+    expect(calculateMultiplierDisplay(1500, backendLinearConfig)).toBe("2.50");
+    expect(calculateMultiplierDisplay(2500, backendLinearConfig)).toBe("3.50");
+    expect(calculateMultiplierDisplay(10_000, backendLinearConfig)).toBe("11.00");
+  });
+
+  it("matches backend docker default growth at 40 bps per second", () => {
+    expect(calculateMultiplierDisplay(2500, dockerLinearConfig)).toBe("2.00");
+    expect(calculateMultiplierDisplay(10_000, dockerLinearConfig)).toBe("5.00");
+  });
+
   it("uses base growth before 2.00x", () => {
     expect(calculateMultiplierDisplay(2500, balancedConfig)).toBe("2.00");
   });
@@ -54,14 +76,42 @@ describe("multiplier growth", () => {
     ).toBe("2.00");
   });
 
-  it("never renders above the latest server multiplier", () => {
+  it("uses server time offset to avoid client clock drift", () => {
+    const clientNowMs = 1_000_000;
+    const serverTimeIso = new Date(clientNowMs + 5_000).toISOString();
+    const offset = computeServerTimeOffsetMs(serverTimeIso, clientNowMs);
+
+    expect(getServerNowMs(offset, clientNowMs)).toBe(clientNowMs + 5_000);
+  });
+
+  it("keeps visual multiplier aligned with backend formula at crash time", () => {
+    const startedAtMs = 1_000_000;
+    const crashElapsedMs = 7_500;
+    const serverNowMs = startedAtMs + crashElapsedMs;
+    const crashPoint = calculateMultiplierDisplay(crashElapsedMs, backendLinearConfig);
+
+    expect(crashPoint).toBe("8.50");
+    expect(
+      resolveRunningMultiplierDisplay(serverNowMs, startedAtMs, backendLinearConfig),
+    ).toBe(crashPoint);
+  });
+
+  it("does not lag behind backend when client clock is behind server", () => {
+    const startedAtMs = 0;
+    const serverNowMs = 3_000;
+    const clientNowMs = 1_000;
+    const offset = serverNowMs - clientNowMs;
+
     expect(
       resolveRunningMultiplierDisplay(
-        10_000,
-        0,
-        balancedConfig,
-        "2.00",
+        getServerNowMs(offset, clientNowMs),
+        startedAtMs,
+        backendLinearConfig,
       ),
-    ).toBe("2.00");
+    ).toBe("4.00");
+  });
+
+  it("exposes basis points helper for formula parity checks", () => {
+    expect(calculateMultiplierBasisPoints(1500, backendLinearConfig)).toBe(250);
   });
 });
