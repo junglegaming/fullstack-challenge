@@ -2,6 +2,7 @@ import { MAX_BET_CENTS, MIN_BET_CENTS } from "../constants/bet-limits";
 import { InvalidBetAmountError } from "../errors/invalid-bet-amount.error";
 import { InvalidBetTransitionError } from "../errors/invalid-bet-transition.error";
 import { BetId } from "../value-objects/bet-id";
+import { PayoutSettlementStatus } from "../value-objects/payout-settlement-status";
 import { BetStatus } from "../value-objects/round-status";
 import { Money } from "../value-objects/money";
 import { Multiplier } from "../value-objects/multiplier";
@@ -17,6 +18,9 @@ type BetProps = {
   idempotencyKey: string;
   cashOutMultiplier: Multiplier | null;
   payout: Money | null;
+  payoutSettlementStatus: PayoutSettlementStatus | null;
+  payoutCreditIdempotencyKey: string | null;
+  payoutSettlementFailureReason: string | null;
 };
 
 export class Bet {
@@ -45,6 +49,9 @@ export class Bet {
       idempotencyKey,
       cashOutMultiplier: null,
       payout: null,
+      payoutSettlementStatus: null,
+      payoutCreditIdempotencyKey: null,
+      payoutSettlementFailureReason: null,
     });
   }
 
@@ -73,11 +80,56 @@ export class Bet {
     this.transitionTo(BetStatus.REJECTED, [BetStatus.PENDING_DEBIT]);
   }
 
-  cashOut(multiplier: Multiplier): void {
+  cashOut(multiplier: Multiplier, payoutCreditIdempotencyKey: string): void {
     this.transitionTo(BetStatus.CASHED_OUT, [BetStatus.PLACED]);
+
+    const creditIdempotencyKey = payoutCreditIdempotencyKey.trim();
+
+    if (!creditIdempotencyKey) {
+      throw new Error("Payout credit idempotency key cannot be empty");
+    }
 
     this.props.cashOutMultiplier = multiplier;
     this.props.payout = multiplier.calculatePayout(this.props.amount);
+    this.props.payoutSettlementStatus = PayoutSettlementStatus.PENDING;
+    this.props.payoutCreditIdempotencyKey = creditIdempotencyKey;
+    this.props.payoutSettlementFailureReason = null;
+  }
+
+  markPayoutSettled(): void {
+    if (this.props.payoutSettlementStatus === PayoutSettlementStatus.SETTLED) {
+      return;
+    }
+
+    if (this.props.payoutSettlementStatus !== PayoutSettlementStatus.PENDING) {
+      throw new Error(
+        `Cannot settle payout from status ${this.props.payoutSettlementStatus ?? "null"}`,
+      );
+    }
+
+    this.props.payoutSettlementStatus = PayoutSettlementStatus.SETTLED;
+    this.props.payoutSettlementFailureReason = null;
+  }
+
+  markPayoutSettlementFailed(reason: string): void {
+    if (this.props.payoutSettlementStatus === PayoutSettlementStatus.FAILED) {
+      return;
+    }
+
+    if (this.props.payoutSettlementStatus !== PayoutSettlementStatus.PENDING) {
+      throw new Error(
+        `Cannot mark payout settlement failed from status ${this.props.payoutSettlementStatus ?? "null"}`,
+      );
+    }
+
+    const failureReason = reason.trim();
+
+    if (!failureReason) {
+      throw new Error("Payout settlement failure reason cannot be empty");
+    }
+
+    this.props.payoutSettlementStatus = PayoutSettlementStatus.FAILED;
+    this.props.payoutSettlementFailureReason = failureReason;
   }
 
   markLost(): void {
@@ -128,6 +180,18 @@ export class Bet {
 
   get payout(): Money | null {
     return this.props.payout;
+  }
+
+  get payoutSettlementStatus(): PayoutSettlementStatus | null {
+    return this.props.payoutSettlementStatus;
+  }
+
+  get payoutCreditIdempotencyKey(): string | null {
+    return this.props.payoutCreditIdempotencyKey;
+  }
+
+  get payoutSettlementFailureReason(): string | null {
+    return this.props.payoutSettlementFailureReason;
   }
 
   private transitionTo(target: BetStatus, allowedSources: BetStatus[]): void {

@@ -15,8 +15,8 @@ import { PlayerId } from "../../domain/value-objects/player-id";
 import { RoundId } from "../../domain/value-objects/round-id";
 
 /**
- * Temporary in-memory repository for the API slice.
- * Replace with Prisma persistence plus RabbitMQ handlers before the final gameplay flow.
+ * In-memory repository for unit tests.
+ * Production uses PrismaGameRoundsRepository.
  */
 @Injectable()
 export class InMemoryGameRoundsRepository implements GameRoundsRepository {

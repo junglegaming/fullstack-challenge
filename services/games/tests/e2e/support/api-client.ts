@@ -9,6 +9,8 @@ export type BetSummary = {
   status: string;
   cashOutMultiplier: string | null;
   payoutCents: string | null;
+  payoutSettlementStatus: string | null;
+  payoutSettlementFailureReason: string | null;
 };
 
 export type CurrentRound = {
@@ -35,6 +37,7 @@ export type CashOutResponse = {
   roundId: string;
   currentMultiplier: string;
   estimatedPayoutCents: string;
+  idempotencyKey: string;
 };
 
 export type PaginatedBets = {
@@ -85,7 +88,7 @@ export class E2EApiClient {
       },
       body: JSON.stringify({ amountCents }),
     });
-    return expectJson<PlaceBetResponse>(response);
+    return expectJson<PlaceBetResponse>(response, 202);
   }
 
   async placeBetRaw(amountCents: string): Promise<Response> {
@@ -104,7 +107,14 @@ export class E2EApiClient {
       method: "POST",
       headers: this.authHeaders(),
     });
-    return expectJson<CashOutResponse>(response);
+    return expectJson<CashOutResponse>(response, 202);
+  }
+
+  async cashOutRaw(): Promise<Response> {
+    return fetch(`${E2E_CONFIG.apiBaseUrl}/games/bet/cashout`, {
+      method: "POST",
+      headers: this.authHeaders(),
+    });
   }
 
   findPlayerBetInRound(round: CurrentRound, playerId: string): BetSummary | undefined {

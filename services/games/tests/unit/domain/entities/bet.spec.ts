@@ -3,6 +3,7 @@ import { Bet } from "../../../../src/domain/entities/bet";
 import { InvalidBetAmountError } from "../../../../src/domain/errors/invalid-bet-amount.error";
 import { InvalidBetTransitionError } from "../../../../src/domain/errors/invalid-bet-transition.error";
 import { BetStatus } from "../../../../src/domain/value-objects/round-status";
+import { PayoutSettlementStatus } from "../../../../src/domain/value-objects/payout-settlement-status";
 import { Money } from "../../../../src/domain/value-objects/money";
 import { Multiplier } from "../../../../src/domain/value-objects/multiplier";
 import { PlayerId } from "../../../../src/domain/value-objects/player-id";
@@ -54,17 +55,18 @@ describe("Bet", () => {
     const bet = createPendingBet(1000n);
     bet.markPlaced();
 
-    bet.cashOut(Multiplier.fromBasisPoints(250));
+    bet.cashOut(Multiplier.fromBasisPoints(250), "credit-idempotency-1");
 
     expect(bet.status).toBe(BetStatus.CASHED_OUT);
     expect(bet.payout?.amountInCents).toBe(2500n);
     expect(bet.cashOutMultiplier?.toDisplayString()).toBe("2.50");
+    expect(bet.payoutSettlementStatus).toBe(PayoutSettlementStatus.PENDING);
   });
 
   it("prevents cashed out bet from becoming lost", () => {
     const bet = createPendingBet(1000n);
     bet.markPlaced();
-    bet.cashOut(Multiplier.fromBasisPoints(150));
+    bet.cashOut(Multiplier.fromBasisPoints(150), "credit-idempotency-1");
 
     expect(() => bet.markLost()).toThrow(InvalidBetTransitionError);
   });
@@ -74,7 +76,7 @@ describe("Bet", () => {
     bet.markPlaced();
     bet.markLost();
 
-    expect(() => bet.cashOut(Multiplier.fromBasisPoints(150))).toThrow(
+    expect(() => bet.cashOut(Multiplier.fromBasisPoints(150), "credit-idempotency-1")).toThrow(
       InvalidBetTransitionError,
     );
   });

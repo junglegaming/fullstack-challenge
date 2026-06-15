@@ -130,6 +130,7 @@ describe("Round", () => {
       round.cashOut({
         playerId: playerOne,
         currentMultiplier: Multiplier.fromBasisPoints(150),
+        payoutCreditIdempotencyKey: "credit-idempotency-1",
       }),
     ).toThrow(CashOutNotAllowedError);
 
@@ -138,6 +139,7 @@ describe("Round", () => {
     const cashedOutBet = round.cashOut({
       playerId: playerOne,
       currentMultiplier: Multiplier.fromBasisPoints(150),
+      payoutCreditIdempotencyKey: "credit-idempotency-1",
     });
 
     expect(cashedOutBet.status).toBe(BetStatus.CASHED_OUT);
@@ -181,6 +183,7 @@ describe("Round", () => {
       round.cashOut({
         playerId: playerOne,
         currentMultiplier: Multiplier.fromBasisPoints(150),
+        payoutCreditIdempotencyKey: "credit-idempotency-1",
       }),
     ).toThrow(BetNotFoundError);
   });
@@ -194,6 +197,7 @@ describe("Round", () => {
       round.cashOut({
         playerId: playerOne,
         currentMultiplier: Multiplier.fromBasisPoints(350),
+        payoutCreditIdempotencyKey: "credit-idempotency-1",
       }),
     ).toThrow(CashOutNotAllowedError);
   });
@@ -208,6 +212,7 @@ describe("Round", () => {
     round.cashOut({
       playerId: playerOne,
       currentMultiplier: Multiplier.fromBasisPoints(180),
+      payoutCreditIdempotencyKey: "credit-idempotency-1",
     });
 
     round.crash(crashedAt);

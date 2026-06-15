@@ -25,11 +25,12 @@ export class CashOutBetUseCase {
       growthBasisPointsPerSecond:
         this.engineConfig?.multiplierGrowthBasisPointsPerSecond,
     });
+    const idempotencyKey = randomUUID();
     const bet = round.cashOut({
       playerId: PlayerId.create(input.playerId),
       currentMultiplier,
+      payoutCreditIdempotencyKey: idempotencyKey,
     });
-    const idempotencyKey = randomUUID();
     const payoutCents = bet.payout?.amountInCents.toString() ?? "0";
 
     await this.roundsRepository.save(round);

@@ -8,6 +8,8 @@ import {
   prepareInsufficientBalanceAttempt,
   placeBetAndCashOut,
   waitForBettingRound,
+  waitForBettingRoundWithoutPlayerBet,
+  waitForLatestPlayerPayoutSettlementStatus,
   waitForLatestPlayerBetStatus,
   waitForPlayerBetStatus,
   waitForRoundStatus,
@@ -34,20 +36,28 @@ describe("Gameplay E2E", () => {
     expect(balanceAfter).toBe(balanceBefore);
   });
 
+  it("accepts bet with HTTP 202 and pending response body", async () => {
+    await waitForBettingRoundWithoutPlayerBet(client);
+
+    const round = await client.getCurrentRound();
+    const response = await client.placeBetRaw("1000");
+
+    expect(response.status).toBe(202);
+
+    const body = (await response.json()) as {
+      status: string;
+      roundId: string;
+      idempotencyKey: string;
+    };
+    expect(body.status).toBe("PENDING");
+    expect(body.roundId).toBe(round.id);
+    expect(body.idempotencyKey).toBeTruthy();
+
+    await waitForPlayerBetStatus(client, round.id, "PLACED");
+  });
+
   it("rejects duplicate bet in the same round", async () => {
-    const playerId = await client.resolvePlayerId();
-    await waitFor("betting round without existing player bet", async () => {
-      const round = await client.getCurrentRound();
-
-      if (
-        round.status === "BETTING" &&
-        !client.findPlayerBetInRound(round, playerId)
-      ) {
-        return round;
-      }
-
-      return null;
-    });
+    await waitForBettingRoundWithoutPlayerBet(client);
 
     const round = await client.getCurrentRound();
     await client.placeBet("1000");
@@ -84,7 +94,12 @@ describe("Gameplay E2E", () => {
       client,
       betAmount.toString(),
     );
+    expect(cashOut.status).toBe("PENDING");
     expect(cashOut.roundId).toBe(roundId);
+    expect(cashOut.currentMultiplier).toBeTruthy();
+    expect(cashOut.estimatedPayoutCents).toBeTruthy();
+    expect(cashOut.idempotencyKey).toBeTruthy();
+    await waitForLatestPlayerPayoutSettlementStatus(client, "SETTLED");
     await waitForWalletBalanceAtLeast(client, balanceBefore);
 
     const balanceAfter = BigInt((await client.getWallet()).balanceCents);

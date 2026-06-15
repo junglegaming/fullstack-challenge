@@ -30,21 +30,25 @@ model Round {
 }
 
 model Bet {
-  id                   String    @id @default(cuid())
-  roundId              String
-  round                Round     @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  playerId             String
-  amountCents          BigInt
-  status               BetStatus
-  cashOutMultiplierBps Int?
-  payoutCents          BigInt?
-  idempotencyKey       String    @unique
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id                            String                   @id @default(cuid())
+  roundId                       String
+  round                         Round                    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  playerId                      String
+  amountCents                   BigInt
+  status                        BetStatus
+  cashOutMultiplierBps          Int?
+  payoutCents                   BigInt?
+  idempotencyKey                String                   @unique
+  payoutSettlementStatus        PayoutSettlementStatus?
+  payoutCreditIdempotencyKey    String?
+  payoutSettlementFailureReason String?
+  createdAt                     DateTime                 @default(now())
+  updatedAt                     DateTime                 @updatedAt
 
   @@unique([roundId, playerId])
   @@index([playerId])
   @@index([roundId])
+  @@index([payoutCreditIdempotencyKey])
   @@map("bets")
 }
 
@@ -61,4 +65,10 @@ enum BetStatus {
   REJECTED
   CASHED_OUT
   LOST
+}
+
+enum PayoutSettlementStatus {
+  PENDING
+  SETTLED
+  FAILED
 }

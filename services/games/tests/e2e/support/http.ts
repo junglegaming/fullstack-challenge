@@ -24,8 +24,15 @@ export async function parseJsonResponse<T>(response: Response): Promise<T> {
   return JSON.parse(text) as T;
 }
 
-export async function expectJson<T>(response: Response): Promise<T> {
+export async function expectJson<T>(
+  response: Response,
+  expectedStatus?: number,
+): Promise<T> {
   const body = await parseJsonResponse<T | ApiErrorBody>(response);
+
+  if (expectedStatus !== undefined && response.status !== expectedStatus) {
+    throw new ApiError(response.status, body as ApiErrorBody);
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, body as ApiErrorBody);

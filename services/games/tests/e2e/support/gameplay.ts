@@ -98,6 +98,49 @@ export async function placeBetAndWaitPlaced(
   return { roundId, betId: bet.id };
 }
 
+export async function waitForPlayerPayoutSettlementStatus(
+  client: E2EApiClient,
+  roundId: string,
+  status: string,
+): Promise<void> {
+  const playerId = await client.resolvePlayerId();
+
+  await waitFor(
+    `player payout settlement status ${status} in round ${roundId}`,
+    async () => {
+      const round = await client.getCurrentRound();
+
+      if (round.id !== roundId) {
+        return null;
+      }
+
+      const bet = client.findPlayerBetInRound(round, playerId);
+
+      if (bet?.payoutSettlementStatus === status) {
+        return bet;
+      }
+
+      return null;
+    },
+  );
+}
+
+export async function waitForLatestPlayerPayoutSettlementStatus(
+  client: E2EApiClient,
+  status: string,
+): Promise<void> {
+  await waitFor(`player payout settlement status ${status}`, async () => {
+    const bets = await client.getMyBets();
+    const match = bets.items.find((bet) => bet.payoutSettlementStatus === status);
+
+    if (match) {
+      return match;
+    }
+
+    return null;
+  });
+}
+
 export async function waitForWalletBalanceAtLeast(
   client: E2EApiClient,
   minimumBalanceCents: bigint,
@@ -174,14 +217,35 @@ export async function ensureStackIsReady(client: E2EApiClient): Promise<void> {
   await client.getCurrentRound();
 }
 
+export async function waitForBettingRoundWithoutPlayerBet(
+  client: E2EApiClient,
+): Promise<void> {
+  const playerId = await client.resolvePlayerId();
+
+  await waitFor("betting round without player bet", async () => {
+    const round = await client.getCurrentRound();
+
+    if (
+      round.status === "BETTING" &&
+      !client.findPlayerBetInRound(round, playerId)
+    ) {
+      return round;
+    }
+
+    return null;
+  });
+}
+
 export async function prepareInsufficientBalanceAttempt(
   client: E2EApiClient,
 ): Promise<{ roundId: string; balanceBefore: bigint }> {
+  await waitForBettingRoundWithoutPlayerBet(client);
+
   let balanceBefore = BigInt((await client.getWallet()).balanceCents);
 
   if (balanceBefore > 50_000n) {
     await placeBetAndWaitPlaced(client, "50000");
-    await waitForBettingRound(client);
+    await waitForBettingRoundWithoutPlayerBet(client);
     balanceBefore = BigInt((await client.getWallet()).balanceCents);
   }
 

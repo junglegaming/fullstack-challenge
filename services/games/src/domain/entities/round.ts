@@ -158,6 +158,7 @@ export class Round {
   cashOut(input: {
     playerId: PlayerId;
     currentMultiplier: Multiplier;
+    payoutCreditIdempotencyKey: string;
   }): Bet {
     if (this.props.status !== RoundStatus.RUNNING) {
       throw new CashOutNotAllowedError("Cash out is only allowed while round is RUNNING");
@@ -179,8 +180,20 @@ export class Round {
       throw new CashOutNotAllowedError("Only placed bets can be cashed out");
     }
 
-    bet.cashOut(input.currentMultiplier);
+    bet.cashOut(input.currentMultiplier, input.payoutCreditIdempotencyKey);
 
+    return bet;
+  }
+
+  confirmPayoutSettled(betId: BetId): Bet {
+    const bet = this.findBetById(betId);
+    bet.markPayoutSettled();
+    return bet;
+  }
+
+  markPayoutSettlementFailed(betId: BetId, reason: string): Bet {
+    const bet = this.findBetById(betId);
+    bet.markPayoutSettlementFailed(reason);
     return bet;
   }
 
@@ -324,6 +337,10 @@ export class Round {
 
   get bets(): readonly Bet[] {
     return this.props.bets;
+  }
+
+  getStoredServerSeed(): string | null {
+    return this.props.serverSeed ?? this.props.hiddenServerSeed;
   }
 
   getBetById(betId: BetId): Bet | null {
