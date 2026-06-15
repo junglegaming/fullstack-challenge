@@ -99,6 +99,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4001:4001"
+    environment:
+      GAME_MULTIPLIER_GROWTH_BPS_PER_SECOND: "40"
+      GAME_MULTIPLIER_BOOST_AFTER_GAINED_BPS: "100"
+      GAME_MULTIPLIER_BOOST_GROWTH_BPS_PER_SECOND: "2000"
     env_file:
       - ./services/games/.env
     depends_on:
