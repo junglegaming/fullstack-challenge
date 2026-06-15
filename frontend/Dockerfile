@@ -1,0 +1,29 @@
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json ./
+RUN bun install
+
+COPY . .
+
+ARG VITE_API_BASE_URL=http://localhost:8000
+ARG VITE_WS_URL=http://localhost:4001/games
+ARG VITE_KEYCLOAK_ISSUER=http://localhost:8080/realms/crash-game
+ARG VITE_KEYCLOAK_CLIENT_ID=crash-game-client
+ARG VITE_KEYCLOAK_REDIRECT_URI=http://localhost:3000/auth/callback
+
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_WS_URL=$VITE_WS_URL
+ENV VITE_KEYCLOAK_ISSUER=$VITE_KEYCLOAK_ISSUER
+ENV VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
+ENV VITE_KEYCLOAK_REDIRECT_URI=$VITE_KEYCLOAK_REDIRECT_URI
+
+RUN bun run build
+
+FROM nginx:1.27-alpine
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 3000
