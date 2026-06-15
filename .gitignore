@@ -33,7 +33,7 @@ yarn-error.log*
 coverage/
 
 # Cursor Rules
-# .cursor/
+.cursor/
 
 # Specs Files
-# specs/
+specs/
