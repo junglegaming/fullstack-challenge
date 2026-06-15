@@ -1,3 +1,20 @@
+function readPositiveInteger(
+  rawValue: string | undefined,
+  fallback: number,
+): number {
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const parsed = Number(rawValue);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
 export const config = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000",
   websocketUrl: import.meta.env.VITE_WS_URL ?? "http://localhost:4001/games",
@@ -8,5 +25,11 @@ export const config = {
     import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? "crash-game-client",
   redirectUri:
     import.meta.env.VITE_KEYCLOAK_REDIRECT_URI ??
-    `${window.location.origin}/auth/callback`,
+    (typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : "http://localhost:3000/auth/callback"),
+  multiplierGrowthBpsPerSecond: readPositiveInteger(
+    import.meta.env.VITE_MULTIPLIER_GROWTH_BPS_PER_SECOND,
+    40,
+  ),
 };

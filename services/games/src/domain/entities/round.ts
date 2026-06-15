@@ -5,6 +5,10 @@ import { DuplicateBetError } from "../errors/duplicate-bet.error";
 import { RoundNotFinishedError } from "../errors/round-not-finished.error";
 import { InvalidRoundTransitionError } from "../errors/invalid-round-transition.error";
 import { InvalidServerSeedError } from "../errors/invalid-server-seed.error";
+import {
+  calculateGainedBasisPoints,
+  type MultiplierGrowthConfig,
+} from "../services/multiplier-growth";
 import { ProvablyFairService, RoundVerificationData } from "../services/provably-fair.service";
 import { Bet } from "./bet";
 import { BetId } from "../value-objects/bet-id";
@@ -216,7 +220,7 @@ export class Round {
 
   getCurrentMultiplier(
     now: Date,
-    input?: { growthBasisPointsPerSecond?: number },
+    input?: { growthConfig?: MultiplierGrowthConfig },
   ): Multiplier {
     if (
       this.props.status === RoundStatus.CRASHED ||
@@ -229,16 +233,14 @@ export class Round {
       return Multiplier.one();
     }
 
-    const growthBasisPointsPerSecond =
-      input?.growthBasisPointsPerSecond ??
-      DEFAULT_MULTIPLIER_GROWTH_BPS_PER_SECOND;
+    const growthConfig = input?.growthConfig ?? {
+      growthBasisPointsPerSecond: DEFAULT_MULTIPLIER_GROWTH_BPS_PER_SECOND,
+    };
     const elapsedMs = Math.max(
       0,
       now.getTime() - this.props.startedAt.getTime(),
     );
-    const gainedBasisPoints = Math.floor(
-      (elapsedMs * growthBasisPointsPerSecond) / 1000,
-    );
+    const gainedBasisPoints = calculateGainedBasisPoints(elapsedMs, growthConfig);
     const currentBasisPoints = 100 + gainedBasisPoints;
 
     if (currentBasisPoints > this.props.crashPoint.valueInBasisPoints) {

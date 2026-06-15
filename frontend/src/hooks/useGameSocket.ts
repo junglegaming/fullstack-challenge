@@ -3,6 +3,11 @@ import { io } from "socket.io-client";
 import { config } from "../config";
 import { useGameStore } from "../stores/game-store";
 import { useToastStore } from "../stores/toast-store";
+import {
+  fromMultiplierGrowthPayload,
+  type MultiplierGrowthPayload,
+} from "../utils/multiplier-config";
+import { computeServerTimeOffsetMs } from "../utils/multiplier-growth";
 
 type RoundBettingStarted = {
   roundId: string;
@@ -14,7 +19,10 @@ type RoundBettingStarted = {
 type RoundStarted = {
   roundId: string;
   startedAt: string;
+  serverTime: string;
   serverSeedHash: string;
+  baseMultiplier: string;
+  multiplierGrowth: MultiplierGrowthPayload;
 };
 
 type MultiplierTick = {
@@ -50,6 +58,9 @@ export function useGameSocket(): void {
   const setConnected = useGameStore((state) => state.setConnected);
   const setCurrentRound = useGameStore((state) => state.setCurrentRound);
   const setVisualMultiplier = useGameStore((state) => state.setVisualMultiplier);
+  const setMultiplierSync = useGameStore((state) => state.setMultiplierSync);
+  const applyMultiplierTick = useGameStore((state) => state.applyMultiplierTick);
+  const resetMultiplierTicks = useGameStore((state) => state.resetMultiplierTicks);
   const upsertBet = useGameStore((state) => state.upsertBet);
   const pushToast = useToastStore((state) => state.pushToast);
 
@@ -72,6 +83,7 @@ export function useGameSocket(): void {
     });
 
     socket.on("round.betting_started", (payload: RoundBettingStarted) => {
+      resetMultiplierTicks();
       setCurrentRound({
         id: payload.roundId,
         status: "BETTING",
@@ -89,17 +101,28 @@ export function useGameSocket(): void {
     socket.on("round.started", (payload: RoundStarted) => {
       const round = useGameStore.getState().currentRound;
       if (round?.id !== payload.roundId) return;
+      resetMultiplierTicks();
+      setMultiplierSync({
+        multiplierGrowthConfig: fromMultiplierGrowthPayload(
+          payload.multiplierGrowth,
+        ),
+        serverTimeOffsetMs: computeServerTimeOffsetMs(payload.serverTime),
+      });
       setCurrentRound({
         ...round,
         status: "RUNNING",
         startedAt: payload.startedAt,
         serverSeedHash: payload.serverSeedHash,
+        currentMultiplier: payload.baseMultiplier,
       });
+      setVisualMultiplier(payload.baseMultiplier);
       pushToast({ type: "info", title: "Round started" });
     });
 
     socket.on("round.multiplier_tick", (payload: MultiplierTick) => {
-      setVisualMultiplier(payload.multiplier);
+      const round = useGameStore.getState().currentRound;
+      if (round?.id !== payload.roundId) return;
+      applyMultiplierTick(payload.multiplier, payload.occurredAt);
     });
 
     socket.on("bet.accepted", (payload: BetAccepted) => {
@@ -136,6 +159,7 @@ export function useGameSocket(): void {
     socket.on("round.crashed", (payload: RoundCrashed) => {
       const round = useGameStore.getState().currentRound;
       if (round?.id !== payload.roundId) return;
+      resetMultiplierTicks();
       setVisualMultiplier(payload.crashPoint);
       setCurrentRound({
         ...round,
@@ -157,5 +181,14 @@ export function useGameSocket(): void {
     return () => {
       socket.disconnect();
     };
-  }, [pushToast, setConnected, setCurrentRound, setVisualMultiplier, upsertBet]);
+  }, [
+    applyMultiplierTick,
+    pushToast,
+    resetMultiplierTicks,
+    setMultiplierSync,
+    setConnected,
+    setCurrentRound,
+    setVisualMultiplier,
+    upsertBet,
+  ]);
 }

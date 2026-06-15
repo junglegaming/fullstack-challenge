@@ -77,7 +77,9 @@ describe("Game API use cases", () => {
 
   it("returns the current round response", async () => {
     const { repository } = createFixture();
-    const useCase = new GetCurrentRoundUseCase(repository);
+    const useCase = new GetCurrentRoundUseCase(repository, {
+      multiplierGrowth: { growthBasisPointsPerSecond: 100 },
+    });
 
     const result = await useCase.execute();
 
@@ -242,7 +244,7 @@ describe("Game API use cases", () => {
     const result = await new CashOutBetUseCase(
       repository,
       walletCommandPublisher,
-      { multiplierGrowthBasisPointsPerSecond: 0 },
+      { multiplierGrowth: { growthBasisPointsPerSecond: 0 } },
       realtimePublisher,
     ).execute({
       playerId: "player-1",

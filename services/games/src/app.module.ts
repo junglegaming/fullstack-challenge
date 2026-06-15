@@ -74,9 +74,11 @@ import { WalletCreditResultConsumer } from "./presentation/messaging/wallet-cred
     },
     {
       provide: GetCurrentRoundUseCase,
-      inject: [GAME_ROUNDS_REPOSITORY],
-      useFactory: (roundsRepository: GameRoundsRepository) =>
-        new GetCurrentRoundUseCase(roundsRepository),
+      inject: [GAME_ROUNDS_REPOSITORY, GAME_ROUND_ENGINE_CONFIG],
+      useFactory: (
+        roundsRepository: GameRoundsRepository,
+        engineConfig: GameRoundEngineConfig,
+      ) => new GetCurrentRoundUseCase(roundsRepository, engineConfig),
     },
     {
       provide: GetRoundHistoryUseCase,

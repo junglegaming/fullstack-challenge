@@ -43,6 +43,34 @@ export type CashOutResponse = {
 export type PaginatedBets = {
   items: BetSummary[];
   total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type RoundHistoryItem = {
+  id: string;
+  crashPoint: string;
+  serverSeedHash: string;
+  serverSeed: string | null;
+  createdAt: string;
+};
+
+export type PaginatedRoundHistory = {
+  items: RoundHistoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
+export type RoundVerification = {
+  roundId: string;
+  serverSeed: string;
+  serverSeedHash: string;
+  clientSeed: string;
+  nonce: number;
+  algorithm: string;
+  houseEdgePercent: number;
+  crashPoint: string;
 };
 
 export class E2EApiClient {
@@ -77,6 +105,36 @@ export class E2EApiClient {
       headers: this.authHeaders(),
     });
     return expectJson<PaginatedBets>(response);
+  }
+
+  async getMyBetsRaw(): Promise<Response> {
+    return fetch(`${E2E_CONFIG.apiBaseUrl}/games/bets/me`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  async getRoundHistory(page = 1, pageSize = 20): Promise<PaginatedRoundHistory> {
+    const response = await fetch(
+      `${E2E_CONFIG.apiBaseUrl}/games/rounds/history?page=${page}&pageSize=${pageSize}`,
+    );
+    return expectJson<PaginatedRoundHistory>(response);
+  }
+
+  async getRoundHistoryRaw(page = 1, pageSize = 20): Promise<Response> {
+    return fetch(
+      `${E2E_CONFIG.apiBaseUrl}/games/rounds/history?page=${page}&pageSize=${pageSize}`,
+    );
+  }
+
+  async verifyRound(roundId: string): Promise<RoundVerification> {
+    const response = await fetch(
+      `${E2E_CONFIG.apiBaseUrl}/games/rounds/${roundId}/verify`,
+    );
+    return expectJson<RoundVerification>(response);
+  }
+
+  async verifyRoundRaw(roundId: string): Promise<Response> {
+    return fetch(`${E2E_CONFIG.apiBaseUrl}/games/rounds/${roundId}/verify`);
   }
 
   async placeBet(amountCents: string): Promise<PlaceBetResponse> {

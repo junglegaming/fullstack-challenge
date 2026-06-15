@@ -1,6 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Bet } from "../../domain/entities/bet";
 import { Round } from "../../domain/entities/round";
+import type { MultiplierGrowthConfig } from "../../domain/services/multiplier-growth";
+import { toMultiplierGrowthPayload } from "../mappers/multiplier-growth.mapper";
+import type { MultiplierGrowthPayload } from "../realtime/game-realtime-events";
 
 export class BetSummaryDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
@@ -58,6 +61,19 @@ export class CurrentRoundDto {
 
   @ApiProperty({ example: "1.00" })
   currentMultiplier!: string;
+
+  @ApiProperty({ example: "1.00" })
+  baseMultiplier!: string;
+
+  @ApiProperty({
+    example: {
+      growthBasisPointsPerSecond: 40,
+    },
+  })
+  multiplierGrowth!: MultiplierGrowthPayload;
+
+  @ApiProperty({ nullable: true, example: "2026-06-15T12:00:05.000Z" })
+  serverTime!: string | null;
 
   @ApiProperty({ type: [BetSummaryDto] })
   bets!: BetSummaryDto[];
@@ -125,7 +141,15 @@ export function toBetSummaryDto(bet: Bet): BetSummaryDto {
   };
 }
 
-export function toCurrentRoundDto(round: Round): CurrentRoundDto {
+export function toCurrentRoundDto(
+  round: Round,
+  input?: { multiplierGrowth?: MultiplierGrowthConfig },
+): CurrentRoundDto {
+  const now = new Date();
+  const multiplierGrowth = input?.multiplierGrowth ?? {
+    growthBasisPointsPerSecond: 100,
+  };
+
   return {
     id: round.id.toString(),
     status: round.status,
@@ -134,7 +158,12 @@ export function toCurrentRoundDto(round: Round): CurrentRoundDto {
     bettingEndsAt: round.bettingEndsAt.toISOString(),
     startedAt: round.startedAt?.toISOString() ?? null,
     crashedAt: round.crashedAt?.toISOString() ?? null,
-    currentMultiplier: round.getCurrentMultiplier(new Date()).toDecimalString(),
+    currentMultiplier: round
+      .getCurrentMultiplier(now, { growthConfig: multiplierGrowth })
+      .toDecimalString(),
+    baseMultiplier: "1.00",
+    multiplierGrowth: toMultiplierGrowthPayload(multiplierGrowth),
+    serverTime: round.status === "RUNNING" ? now.toISOString() : null,
     bets: round.bets.map(toBetSummaryDto),
   };
 }

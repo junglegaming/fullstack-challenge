@@ -19,6 +19,14 @@ export type BetSummary = {
   payoutCents: string | null;
 };
 
+export type MultiplierGrowthPayload = {
+  growthBasisPointsPerSecond: number;
+  boostAfterGainedBasisPoints?: number;
+  boostGrowthBasisPointsPerSecond?: number;
+  highBoostAfterGainedBasisPoints?: number;
+  highGrowthBasisPointsPerSecond?: number;
+};
+
 export type CurrentRound = {
   id: string;
   status: "BETTING" | "RUNNING" | "CRASHED" | "SETTLED";
@@ -29,6 +37,9 @@ export type CurrentRound = {
   startedAt: string | null;
   crashedAt: string | null;
   currentMultiplier: string;
+  baseMultiplier?: string;
+  multiplierGrowth?: MultiplierGrowthPayload;
+  serverTime?: string | null;
   bets: BetSummary[];
 };
 
@@ -58,6 +69,17 @@ export type CashOutResult = PendingAction & {
   estimatedPayoutCents: string;
 };
 
+export type RoundVerification = {
+  roundId: string;
+  serverSeed: string;
+  serverSeedHash: string;
+  clientSeed: string;
+  nonce: number;
+  algorithm: string;
+  houseEdgePercent: number;
+  crashPoint: string;
+};
+
 export async function getWallet(): Promise<Wallet> {
   return request<Wallet>("/wallets/me", { auth: true });
 }
@@ -75,6 +97,12 @@ export async function getCurrentRound(): Promise<CurrentRound> {
 
 export async function getRoundHistory(): Promise<Paginated<RoundHistoryItem>> {
   return request<Paginated<RoundHistoryItem>>("/games/rounds/history?pageSize=20");
+}
+
+export async function getRoundVerification(
+  roundId: string,
+): Promise<RoundVerification> {
+  return request<RoundVerification>(`/games/rounds/${roundId}/verify`);
 }
 
 export async function getMyBets(): Promise<Paginated<BetSummary>> {

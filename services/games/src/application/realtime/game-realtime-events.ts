@@ -13,10 +13,21 @@ export type RoundBettingStartedPayload = {
   bettingEndsAt: string;
 };
 
+export type MultiplierGrowthPayload = {
+  growthBasisPointsPerSecond: number;
+  boostAfterGainedBasisPoints?: number;
+  boostGrowthBasisPointsPerSecond?: number;
+  highBoostAfterGainedBasisPoints?: number;
+  highGrowthBasisPointsPerSecond?: number;
+};
+
 export type RoundStartedPayload = {
   roundId: string;
   startedAt: string;
+  serverTime: string;
   serverSeedHash: string;
+  baseMultiplier: string;
+  multiplierGrowth: MultiplierGrowthPayload;
 };
 
 export type RoundMultiplierTickPayload = {

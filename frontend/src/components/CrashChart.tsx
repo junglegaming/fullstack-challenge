@@ -1,9 +1,19 @@
 import type { CurrentRound } from "../services/api";
 import { useGameStore } from "../stores/game-store";
+import { FairnessCommitment } from "./FairnessCommitment";
+import { RoundVerificationPanel } from "./RoundVerificationPanel";
 
 type CrashChartProps = {
   round: CurrentRound | null;
 };
+
+function isPreCrashStatus(status: CurrentRound["status"] | undefined): boolean {
+  return status === "BETTING" || status === "RUNNING";
+}
+
+function isPostCrashStatus(status: CurrentRound["status"] | undefined): boolean {
+  return status === "CRASHED" || status === "SETTLED";
+}
 
 export function CrashChart({ round }: CrashChartProps) {
   const multiplier = useGameStore((state) => state.visualMultiplier);
@@ -24,16 +34,12 @@ export function CrashChart({ round }: CrashChartProps) {
           style={{ transform: `translateY(-${curveHeight}px)` }}
         />
       </div>
-      <dl className="seed-grid">
-        <div>
-          <dt>Server seed hash</dt>
-          <dd>{round?.serverSeedHash ?? "-"}</dd>
-        </div>
-        <div>
-          <dt>Revealed seed</dt>
-          <dd>{round?.serverSeed ?? "hidden until crash"}</dd>
-        </div>
-      </dl>
+      {round && isPreCrashStatus(round.status) ? (
+        <FairnessCommitment serverSeedHash={round.serverSeedHash} />
+      ) : null}
+      {round && isPostCrashStatus(round.status) ? (
+        <RoundVerificationPanel roundId={round.id} />
+      ) : null}
     </section>
   );
 }

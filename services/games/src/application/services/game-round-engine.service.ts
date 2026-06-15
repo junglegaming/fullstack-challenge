@@ -9,6 +9,7 @@ import {
   GAME_ROUND_ENGINE_CONFIG,
   type GameRoundEngineConfig,
 } from "../config/game-round-engine.config";
+import { toMultiplierGrowthPayload } from "../mappers/multiplier-growth.mapper";
 import {
   GAME_REALTIME_PUBLISHER,
   type GameRealtimePublisher,
@@ -95,14 +96,16 @@ export class GameRoundEngineService implements OnModuleInit, OnModuleDestroy {
     await this.realtimePublisher.publishRoundStarted({
       roundId: round.id.toString(),
       startedAt: now.toISOString(),
+      serverTime: now.toISOString(),
       serverSeedHash: round.serverSeedHash,
+      baseMultiplier: "1.00",
+      multiplierGrowth: toMultiplierGrowthPayload(this.config.multiplierGrowth),
     });
   }
 
   private async crashRoundIfNeeded(round: Round, now: Date): Promise<void> {
     const currentMultiplier = round.getCurrentMultiplier(now, {
-      growthBasisPointsPerSecond:
-        this.config.multiplierGrowthBasisPointsPerSecond,
+      growthConfig: this.config.multiplierGrowth,
     });
 
     if (!currentMultiplier.equals(round.crashPoint)) {

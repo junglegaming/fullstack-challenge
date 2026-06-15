@@ -12,18 +12,14 @@ export class CashOutBetUseCase {
   constructor(
     private readonly roundsRepository: GameRoundsRepository,
     private readonly walletCommandPublisher: WalletCommandPublisher,
-    private readonly engineConfig?: Pick<
-      GameRoundEngineConfig,
-      "multiplierGrowthBasisPointsPerSecond"
-    >,
+    private readonly engineConfig?: Pick<GameRoundEngineConfig, "multiplierGrowth">,
     private readonly realtimePublisher?: GameRealtimePublisher,
   ) {}
 
   async execute(input: { playerId: string }): Promise<CashOutResponseDto> {
     const round = await this.roundsRepository.findCurrent();
     const currentMultiplier = round.getCurrentMultiplier(new Date(), {
-      growthBasisPointsPerSecond:
-        this.engineConfig?.multiplierGrowthBasisPointsPerSecond,
+      growthConfig: this.engineConfig?.multiplierGrowth,
     });
     const idempotencyKey = randomUUID();
     const bet = round.cashOut({

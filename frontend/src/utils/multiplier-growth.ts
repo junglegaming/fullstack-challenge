@@ -47,6 +47,13 @@ function buildGrowthSegments(config: MultiplierGrowthConfig): GrowthSegment[] {
   return segments;
 }
 
+export function calculateMultiplierBasisPoints(
+  elapsedMs: number,
+  config: MultiplierGrowthConfig,
+): number {
+  return 100 + calculateGainedBasisPoints(elapsedMs, config);
+}
+
 export function calculateGainedBasisPoints(
   elapsedMs: number,
   config: MultiplierGrowthConfig,
@@ -204,25 +211,25 @@ export function calibrateStartedAtMs(
   return startedAtMs - msAdjustment;
 }
 
+export function computeServerTimeOffsetMs(
+  serverTimeIso: string,
+  clientNowMs: number = Date.now(),
+): number {
+  return new Date(serverTimeIso).getTime() - clientNowMs;
+}
+
+export function getServerNowMs(
+  serverTimeOffsetMs: number,
+  clientNowMs: number = Date.now(),
+): number {
+  return clientNowMs + serverTimeOffsetMs;
+}
+
 export function resolveRunningMultiplierDisplay(
-  now: number,
+  serverNowMs: number,
   startedAtMs: number,
   config: MultiplierGrowthConfig,
-  serverMultiplier: string | null,
 ): string {
-  const elapsedMs = Math.max(0, now - startedAtMs);
-  const display = calculateMultiplierDisplay(elapsedMs, config);
-
-  if (!serverMultiplier) {
-    return display;
-  }
-
-  const serverValue = parseMultiplierValue(serverMultiplier);
-  const displayValue = parseMultiplierValue(display);
-
-  if (displayValue > serverValue) {
-    return formatMultiplierValue(serverValue);
-  }
-
-  return display;
+  const elapsedMs = Math.max(0, serverNowMs - startedAtMs);
+  return calculateMultiplierDisplay(elapsedMs, config);
 }
