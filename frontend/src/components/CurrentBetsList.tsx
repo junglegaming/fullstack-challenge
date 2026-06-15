@@ -16,7 +16,10 @@ export function CurrentBetsList({ bets }: CurrentBetsListProps) {
           <p className="empty">No bets in this round yet.</p>
         ) : (
           bets.map((bet) => (
-            <article className="bet-row" key={bet.id}>
+            <article
+              className={`bet-row${bet.status === "CASHED_OUT" ? " bet-row-cashed-out" : ""}`}
+              key={bet.id}
+            >
               <div>
                 <strong>{bet.username ?? bet.playerId ?? "player"}</strong>
                 <span>{formatCents(bet.amountCents)}</span>

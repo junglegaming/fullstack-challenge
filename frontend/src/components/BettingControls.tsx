@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
 import type { BetSummary, CurrentRound, Wallet } from "../services/api";
+import { useBettingCountdown } from "../hooks/useBettingCountdown";
+import {
+  estimatePayoutCents,
+  formatCents,
+} from "../utils/crash-chart-math";
 
 type BettingControlsProps = {
   wallet?: Wallet;
@@ -21,8 +26,14 @@ export function BettingControls({
   cashingOut,
 }: BettingControlsProps) {
   const [amount, setAmount] = useState("10.00");
+  const countdown = useBettingCountdown(round?.status, round?.bettingEndsAt);
+  const currentMultiplier = round?.currentMultiplier ?? "1.00";
   const amountCents = useMemo(() => decimalToCents(amount), [amount]);
   const balanceCents = BigInt(wallet?.balanceCents ?? "0");
+  const potentialPayoutCents =
+    myActiveBet?.status === "PLACED"
+      ? estimatePayoutCents(myActiveBet.amountCents, currentMultiplier)
+      : null;
   const canBet =
     round?.status === "BETTING" &&
     amountCents !== null &&
@@ -34,10 +45,18 @@ export function BettingControls({
     round?.status === "RUNNING" &&
     myActiveBet?.status === "PLACED" &&
     !cashingOut;
+  const cashOutLabel = canCashOut && potentialPayoutCents
+    ? `Cash Out (${formatCents(potentialPayoutCents)})`
+    : "Cash Out";
 
   return (
     <section className="panel betting-panel">
       <span className="eyebrow">Bet controls</span>
+      {countdown.isActive ? (
+        <p className="betting-countdown" data-testid="betting-countdown">
+          Betting closes in <strong>{countdown.label}</strong>
+        </p>
+      ) : null}
       <label className="field">
         Amount
         <input
@@ -63,7 +82,7 @@ export function BettingControls({
           onClick={onCashOut}
           type="button"
         >
-          {cashingOut ? "Cashing out..." : "Cash Out"}
+          {cashingOut ? "Cashing out..." : cashOutLabel}
         </button>
       </div>
       <p className="hint">

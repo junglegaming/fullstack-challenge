@@ -43,6 +43,25 @@ export function getAccessToken(): string | null {
   return tokens.accessToken;
 }
 
+export function getPlayerId(): string | null {
+  const token = getStoredTokens()?.accessToken;
+
+  if (!token) {
+    return null;
+  }
+
+  return decodeJwtPayload(token).sub ?? null;
+}
+
+export function isCurrentPlayer(playerId: string | undefined): boolean {
+  if (!playerId) {
+    return false;
+  }
+
+  const currentPlayerId = getPlayerId();
+  return Boolean(currentPlayerId && currentPlayerId === playerId);
+}
+
 export function getUsername(): string {
   const token = getStoredTokens()?.accessToken;
 

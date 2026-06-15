@@ -5,7 +5,9 @@ type FairnessCommitmentProps = {
   serverSeedHash: string;
 };
 
-export function FairnessCommitment({ serverSeedHash }: FairnessCommitmentProps) {
+export function FairnessCommitment({
+  serverSeedHash,
+}: FairnessCommitmentProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy(): Promise<void> {
