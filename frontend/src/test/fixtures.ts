@@ -7,10 +7,13 @@ export const mockWallet: Wallet = {
   balanceFormatted: "1000.00",
 };
 
+export const mockServerSeedHash =
+  "aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899";
+
 export const mockBettingRound: CurrentRound = {
   id: "round-1",
   status: "BETTING",
-  serverSeedHash: "seed-hash",
+  serverSeedHash: mockServerSeedHash,
   bettingStartedAt: "2026-01-01T00:00:00.000Z",
   bettingEndsAt: "2026-01-01T00:00:30.000Z",
   startedAt: null,
@@ -24,6 +27,14 @@ export const mockRunningRound: CurrentRound = {
   status: "RUNNING",
   startedAt: "2026-01-01T00:00:30.000Z",
   currentMultiplier: "2.50",
+};
+
+export const mockCrashedRound: CurrentRound = {
+  ...mockRunningRound,
+  status: "CRASHED",
+  crashedAt: "2026-01-01T00:01:00.000Z",
+  currentMultiplier: "2.45",
+  serverSeed: "revealed-server-seed-value",
 };
 
 export const mockPlacedBet: BetSummary = {

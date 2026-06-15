@@ -219,6 +219,96 @@ button:disabled {
   white-space: nowrap;
 }
 
+.fairness-commitment {
+  margin: 18px 0 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.fairness-commitment-label {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fairness-commitment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.fairness-commitment-hash {
+  min-width: 0;
+  overflow: hidden;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fairness-copy-button {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+}
+
+.round-verification {
+  margin: 18px 0 0;
+}
+
+.round-verification-toggle {
+  width: 100%;
+}
+
+.round-verification-details {
+  margin-top: 12px;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.verification-status {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.verification-status.valid {
+  color: #34d399;
+}
+
+.verification-status.invalid {
+  color: #fb7185;
+}
+
+.verification-grid {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.verification-grid div {
+  min-width: 0;
+}
+
+.verification-grid dt {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.verification-grid dd {
+  overflow-wrap: anywhere;
+  margin: 4px 0 0;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
 .field {
   display: grid;
   gap: 8px;
