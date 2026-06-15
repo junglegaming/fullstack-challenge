@@ -41,6 +41,9 @@ export function pickLiveRound(
           ? localRound.currentMultiplier
           : apiRound.currentMultiplier,
     serverSeed: localRound.serverSeed ?? apiRound.serverSeed,
+    baseMultiplier: localRound.baseMultiplier ?? apiRound.baseMultiplier,
+    multiplierGrowth: localRound.multiplierGrowth ?? apiRound.multiplierGrowth,
+    serverTime: localRound.serverTime ?? apiRound.serverTime,
     bets: mergeRoundBets(apiRound.bets, localRound.bets, apiRound.id),
   };
 }

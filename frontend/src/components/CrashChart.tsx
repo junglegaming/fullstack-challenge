@@ -1,4 +1,5 @@
 import type { CurrentRound } from "../services/api";
+import { useVisualMultiplier } from "../hooks/useVisualMultiplier";
 import { FairnessCommitment } from "./FairnessCommitment";
 import { RoundVerificationPanel } from "./RoundVerificationPanel";
 
@@ -15,6 +16,8 @@ function isPostCrashStatus(status: CurrentRound["status"] | undefined): boolean 
 }
 
 export function CrashChart({ round }: CrashChartProps) {
+  const visualMultiplier = useVisualMultiplier(round);
+
   if (!round) {
     return (
       <section className="panel crash-panel status-LOADING">
@@ -31,7 +34,7 @@ export function CrashChart({ round }: CrashChartProps) {
     );
   }
 
-  const multiplier = round.currentMultiplier;
+  const multiplier = visualMultiplier;
   const numericMultiplier = Number(multiplier);
   const progress = Number.isFinite(numericMultiplier)
     ? Math.min(1, Math.max(0, (numericMultiplier - 1) / 10))

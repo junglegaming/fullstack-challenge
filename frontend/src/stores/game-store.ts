@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { BetSummary, CurrentRound, RoundHistoryItem } from "../services/api";
+import { computeServerTimeOffsetMs } from "../utils/multiplier-growth";
 
 export type MultiplierTickSnapshot = {
   multiplier: string;
@@ -9,10 +10,12 @@ export type MultiplierTickSnapshot = {
 type GameState = {
   connected: boolean;
   latestMultiplierTick: MultiplierTickSnapshot | null;
+  serverTimeOffsetMs: number;
   currentRound: CurrentRound | null;
   roundBets: BetSummary[];
   history: RoundHistoryItem[];
   setConnected: (connected: boolean) => void;
+  setServerTimeOffset: (serverTimeIso: string) => void;
   applyMultiplierTick: (multiplier: string, occurredAt: string) => void;
   resetMultiplierTicks: () => void;
   setCurrentRound: (round: CurrentRound | null) => void;
@@ -24,10 +27,15 @@ type GameState = {
 export const useGameStore = create<GameState>((set) => ({
   connected: false,
   latestMultiplierTick: null,
+  serverTimeOffsetMs: 0,
   currentRound: null,
   roundBets: [],
   history: [],
   setConnected: (connected) => set({ connected }),
+  setServerTimeOffset: (serverTimeIso) =>
+    set({
+      serverTimeOffsetMs: computeServerTimeOffsetMs(serverTimeIso),
+    }),
   applyMultiplierTick: (multiplier, occurredAt) =>
     set((state) => ({
       latestMultiplierTick: {

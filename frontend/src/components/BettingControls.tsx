@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { BetSummary, CurrentRound, Wallet } from "../services/api";
 import { useBettingCountdown } from "../hooks/useBettingCountdown";
+import { useVisualMultiplier } from "../hooks/useVisualMultiplier";
 import {
   estimatePayoutCents,
   formatCents,
@@ -27,7 +28,7 @@ export function BettingControls({
 }: BettingControlsProps) {
   const [amount, setAmount] = useState("10.00");
   const countdown = useBettingCountdown(round?.status, round?.bettingEndsAt);
-  const currentMultiplier = round?.currentMultiplier ?? "1.00";
+  const currentMultiplier = useVisualMultiplier(round);
   const amountCents = useMemo(() => decimalToCents(amount), [amount]);
   const balanceCents = BigInt(wallet?.balanceCents ?? "0");
   const potentialPayoutCents =

@@ -29,6 +29,7 @@ export function GamePage() {
   const roundBets = useGameStore((state) => state.roundBets);
   const history = useGameStore((state) => state.history);
   const setCurrentRound = useGameStore((state) => state.setCurrentRound);
+  const setServerTimeOffset = useGameStore((state) => state.setServerTimeOffset);
   const setHistory = useGameStore((state) => state.setHistory);
 
   useGameSocket();
@@ -76,8 +77,12 @@ export function GamePage() {
       return;
     }
 
+    if (mergedRound.serverTime) {
+      setServerTimeOffset(mergedRound.serverTime);
+    }
+
     setCurrentRound(mergedRound);
-  }, [roundQuery.data, setCurrentRound]);
+  }, [roundQuery.data, setCurrentRound, setServerTimeOffset]);
 
   useEffect(() => {
     if (historyQuery.data) {
