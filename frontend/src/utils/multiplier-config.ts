@@ -41,5 +41,7 @@ export function fromMultiplierGrowthPayload(
 export function createFallbackMultiplierGrowthConfig(): MultiplierGrowthConfig {
   return {
     growthBasisPointsPerSecond: config.multiplierGrowthBpsPerSecond,
+    boostAfterGainedBasisPoints: config.multiplierBoostAfterGainedBps,
+    boostGrowthBasisPointsPerSecond: config.multiplierBoostGrowthBpsPerSecond,
   };
 }

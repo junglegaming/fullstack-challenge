@@ -1,3 +1,19 @@
+function readOptionalPositiveInteger(
+  rawValue: string | undefined,
+): number | undefined {
+  if (!rawValue) {
+    return undefined;
+  }
+
+  const parsed = Number(rawValue);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
 function readPositiveInteger(
   rawValue: string | undefined,
   fallback: number,
@@ -32,4 +48,12 @@ export const config = {
     import.meta.env.VITE_MULTIPLIER_GROWTH_BPS_PER_SECOND,
     40,
   ),
+  multiplierBoostAfterGainedBps:
+    readOptionalPositiveInteger(
+      import.meta.env.VITE_MULTIPLIER_BOOST_AFTER_GAINED_BPS,
+    ) ?? 100,
+  multiplierBoostGrowthBpsPerSecond:
+    readOptionalPositiveInteger(
+      import.meta.env.VITE_MULTIPLIER_BOOST_GROWTH_BPS_PER_SECOND,
+    ) ?? 2000,
 };

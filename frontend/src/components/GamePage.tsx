@@ -15,25 +15,23 @@ import {
   placeBet,
 } from "../services/api";
 import { getAccessToken } from "../services/auth";
-import { fromMultiplierGrowthPayload } from "../utils/multiplier-config";
-import { computeServerTimeOffsetMs } from "../utils/multiplier-growth";
+import { resolveMyActiveBet } from "../utils/active-bet";
+import { pickLiveRound } from "../utils/live-round";
 import { useGameSocket } from "../hooks/useGameSocket";
-import { useVisualMultiplier } from "../hooks/useVisualMultiplier";
 import { useGameStore } from "../stores/game-store";
 import { useToastStore } from "../stores/toast-store";
 
 export function GamePage() {
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.pushToast);
+  const hasAccessToken = Boolean(getAccessToken());
   const currentRound = useGameStore((state) => state.currentRound);
   const roundBets = useGameStore((state) => state.roundBets);
   const history = useGameStore((state) => state.history);
   const setCurrentRound = useGameStore((state) => state.setCurrentRound);
-  const setMultiplierSync = useGameStore((state) => state.setMultiplierSync);
   const setHistory = useGameStore((state) => state.setHistory);
 
   useGameSocket();
-  useVisualMultiplier();
 
   const walletQuery = useQuery({
     queryKey: ["wallet"],
@@ -44,7 +42,7 @@ export function GamePage() {
         return createWallet();
       }
     },
-    enabled: Boolean(getAccessToken()),
+    enabled: hasAccessToken,
   });
 
   const roundQuery = useQuery({
@@ -61,7 +59,7 @@ export function GamePage() {
   const myBetsQuery = useQuery({
     queryKey: ["bets", "me"],
     queryFn: getMyBets,
-    enabled: Boolean(getAccessToken()),
+    enabled: hasAccessToken,
   });
 
   useEffect(() => {
@@ -69,21 +67,17 @@ export function GamePage() {
       return;
     }
 
-    setCurrentRound(roundQuery.data);
+    const mergedRound = pickLiveRound(
+      useGameStore.getState().currentRound,
+      roundQuery.data,
+    );
 
-    if (
-      roundQuery.data.status === "RUNNING" &&
-      roundQuery.data.multiplierGrowth &&
-      roundQuery.data.serverTime
-    ) {
-      setMultiplierSync({
-        multiplierGrowthConfig: fromMultiplierGrowthPayload(
-          roundQuery.data.multiplierGrowth,
-        ),
-        serverTimeOffsetMs: computeServerTimeOffsetMs(roundQuery.data.serverTime),
-      });
+    if (!mergedRound) {
+      return;
     }
-  }, [roundQuery.data, setCurrentRound, setMultiplierSync]);
+
+    setCurrentRound(mergedRound);
+  }, [roundQuery.data, setCurrentRound]);
 
   useEffect(() => {
     if (historyQuery.data) {
@@ -127,13 +121,30 @@ export function GamePage() {
       }),
   });
 
-  const myActiveBet =
-    myBetsQuery.data?.items.find((bet) => bet.roundId === currentRound?.id) ??
-    roundBets.find((bet) => bet.playerId === walletQuery.data?.playerId);
+  const myActiveBet = resolveMyActiveBet(
+    currentRound?.id,
+    walletQuery.data?.playerId,
+    myBetsQuery.data?.items,
+    roundBets,
+    currentRound?.bets ?? [],
+  );
+  const walletStatus = !hasAccessToken
+    ? "unauthenticated"
+    : walletQuery.isError
+      ? "error"
+      : walletQuery.isLoading
+        ? "loading"
+        : "ready";
 
   return (
     <main className="app-shell">
-      <GameHeader wallet={walletQuery.data} />
+      <GameHeader
+        wallet={walletQuery.data}
+        walletErrorMessage={
+          walletQuery.error instanceof Error ? walletQuery.error.message : undefined
+        }
+        walletStatus={walletStatus}
+      />
       <div className="main-grid">
         <CrashChart round={currentRound} />
         <BettingControls

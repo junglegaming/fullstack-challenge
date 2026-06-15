@@ -233,3 +233,28 @@ export function resolveRunningMultiplierDisplay(
   const elapsedMs = Math.max(0, serverNowMs - startedAtMs);
   return calculateMultiplierDisplay(elapsedMs, config);
 }
+
+export type VisualMultiplierTick = {
+  multiplier: string;
+  at: number;
+};
+
+export function resolveVisualMultiplier(input: {
+  startedAtMs: number;
+  serverNowMs: number;
+  config: MultiplierGrowthConfig;
+  latestTick: VisualMultiplierTick | null;
+}): string {
+  const anchorStartedAtMs = input.latestTick
+    ? calibrateStartedAtMs(input.startedAtMs, {
+        multiplier: parseMultiplierValue(input.latestTick.multiplier),
+        at: input.latestTick.at,
+      }, input.config)
+    : input.startedAtMs;
+
+  return resolveRunningMultiplierDisplay(
+    input.serverNowMs,
+    anchorStartedAtMs,
+    input.config,
+  );
+}

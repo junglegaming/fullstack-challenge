@@ -10,7 +10,6 @@ import {
   mockServerSeedHash,
 } from "../test/fixtures";
 import { renderWithProviders } from "../test/test-utils";
-import { useGameStore } from "../stores/game-store";
 
 vi.mock("../services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof api>();
@@ -22,7 +21,6 @@ vi.mock("../services/api", async (importOriginal) => {
 
 describe("CrashChart provably fair display", () => {
   beforeEach(() => {
-    useGameStore.setState({ visualMultiplier: "1.00" });
     vi.mocked(api.getRoundVerification).mockResolvedValue({
       roundId: mockCrashedRound.id,
       serverSeed: "revealed-server-seed-value",
@@ -53,6 +51,46 @@ describe("CrashChart provably fair display", () => {
     expect(screen.queryByRole("button", { name: "Verify round" })).not.toBeInTheDocument();
   });
 
+  it("draws the chart curve upward as the multiplier increases", () => {
+    const { container, rerender } = renderWithProviders(
+      <CrashChart
+        round={{
+          ...mockRunningRound,
+          currentMultiplier: "1.00",
+        }}
+      />,
+    );
+    const initialPoints = container
+      .querySelector(".curve-path")
+      ?.getAttribute("points");
+
+    rerender(
+      <CrashChart
+        round={{
+          ...mockRunningRound,
+          currentMultiplier: "6.00",
+        }}
+      />,
+    );
+    const updatedPoints = container
+      .querySelector(".curve-path")
+      ?.getAttribute("points");
+    const parsedPoints = parseSvgPoints(updatedPoints ?? "");
+    const firstPoint = parsedPoints[0]!;
+    const lastPoint = parsedPoints[parsedPoints.length - 1]!;
+    const risesAcrossChart = parsedPoints.every((point, index) => {
+      if (index === 0) {
+        return true;
+      }
+
+      return point[1] <= parsedPoints[index - 1]![1];
+    });
+
+    expect(initialPoints).toContain("96.00,92.00");
+    expect(lastPoint[1]).toBeLessThan(firstPoint[1]);
+    expect(risesAcrossChart).toBe(true);
+  });
+
   it("shows verify details after crash", async () => {
     const user = userEvent.setup();
 
@@ -76,3 +114,10 @@ describe("CrashChart provably fair display", () => {
     expect(screen.getByTestId("verification-crash-point")).toHaveTextContent("2.45x");
   });
 });
+
+function parseSvgPoints(points: string): Array<[number, number]> {
+  return points.split(" ").map((point) => {
+    const [x, y] = point.split(",").map(Number);
+    return [x!, y!];
+  });
+}

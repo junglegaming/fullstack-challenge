@@ -8,7 +8,6 @@ afterEach(() => {
   cleanup();
   useGameStore.setState({
     connected: false,
-    visualMultiplier: "1.00",
     currentRound: null,
     roundBets: [],
     history: [],

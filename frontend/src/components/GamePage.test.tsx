@@ -55,9 +55,9 @@ describe("GamePage", () => {
     expect(screen.getByText("Logged as")).toBeInTheDocument();
     expect(screen.getByText("Bet controls")).toBeInTheDocument();
     expect(screen.getByText("Current round")).toBeInTheDocument();
-    expect(screen.getByLabelText("Crash multiplier chart")).toBeInTheDocument();
 
     await waitFor(() => {
+      expect(screen.getByLabelText("Crash multiplier chart")).toBeInTheDocument();
       expect(screen.getByText("player")).toBeInTheDocument();
       expect(screen.getByText(/\$ 1000\.00/)).toBeInTheDocument();
     });

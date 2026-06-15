@@ -8,6 +8,7 @@ import {
   getServerNowMs,
   interpolateMultiplierBetweenTicks,
   resolveRunningMultiplierDisplay,
+  resolveVisualMultiplier,
 } from "./multiplier-growth";
 
 const balancedConfig = {
@@ -26,7 +27,55 @@ const dockerLinearConfig = {
   growthBasisPointsPerSecond: 40,
 };
 
+const dockerBoostConfig = {
+  growthBasisPointsPerSecond: 40,
+  boostAfterGainedBasisPoints: 100,
+  boostGrowthBasisPointsPerSecond: 2000,
+};
+
 describe("multiplier growth", () => {
+  it("matches docker boost curve at 3 seconds", () => {
+    expect(calculateMultiplierDisplay(3000, dockerBoostConfig)).toBe("12.00");
+  });
+
+  it("uses docker boost defaults instead of linear-only fallback", () => {
+    expect(
+      calculateMultiplierDisplay(3000, {
+        growthBasisPointsPerSecond: 40,
+      }),
+    ).toBe("2.20");
+    expect(calculateMultiplierDisplay(3000, dockerBoostConfig)).toBe("12.00");
+  });
+
+  it("keeps visual multiplier aligned after authoritative tick calibration", () => {
+    const startedAtMs = 1_000_000;
+    const tickAt = startedAtMs + 3000;
+
+    expect(
+      resolveVisualMultiplier({
+        startedAtMs,
+        serverNowMs: tickAt,
+        config: dockerBoostConfig,
+        latestTick: { multiplier: "12.00", at: tickAt },
+      }),
+    ).toBe("12.00");
+  });
+
+  it("extrapolates smoothly after tick calibration instead of lagging behind", () => {
+    const startedAtMs = 1_000_000;
+    const tickAt = startedAtMs + 3000;
+    const serverNowMs = tickAt + 250;
+
+    expect(
+      resolveVisualMultiplier({
+        startedAtMs,
+        serverNowMs,
+        config: dockerBoostConfig,
+        latestTick: { multiplier: "12.00", at: tickAt },
+      }),
+    ).toBe("17.00");
+  });
+
   it("matches backend linear growth at 100 bps per second", () => {
     expect(calculateMultiplierDisplay(1500, backendLinearConfig)).toBe("2.50");
     expect(calculateMultiplierDisplay(2500, backendLinearConfig)).toBe("3.50");
