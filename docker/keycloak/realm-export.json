@@ -30,6 +30,7 @@
   ],
   "users": [
     {
+      "id": "00000000-0000-4000-8000-000000000001",
       "username": "player",
       "email": "player@crash-game.dev",
       "firstName": "Test",

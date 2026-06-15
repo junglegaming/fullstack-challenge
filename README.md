@@ -1,5 +1,7 @@
 # Desafio Full-stack - Crash Game 🎮
 
+> **Implementação entregue:** consulte [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) para setup zero-config, comandos de teste, credenciais, arquitetura, fluxo RabbitMQ, provably fair, trade-offs e limitações.
+
 ## Bem-vindo à Jungle Gaming 🦧
 
 A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
@@ -256,13 +258,12 @@ O placeholder no `docker-compose.yml` está comentado — descomente e adapte co
 
 ### Variáveis de ambiente
 
-As credenciais de infraestrutura (PostgreSQL, RabbitMQ, Keycloak) estão hardcoded no `docker-compose.yml` — são valores de desenvolvimento local, sem necessidade de `.env` no root.
+As credenciais de infraestrutura (PostgreSQL, RabbitMQ, Keycloak) estão no `docker-compose.yml` — valores de desenvolvimento local, sem `.env` manual no root.
 
-Cada serviço possui `.env.example` com as variáveis necessárias. Copie para `.env` antes de rodar fora do Docker:
+Para desenvolvimento **fora do Docker**, os arquivos `.env` são gerados automaticamente a partir dos `.env.example` ao rodar `bun install` (via `postinstall`). Também é possível regenerá-los com:
 
 ```bash
-cp services/games/.env.example services/games/.env
-cp services/wallets/.env.example services/wallets/.env
+bun run scripts/ensure-env.ts
 ```
 
 **Você pode modificar qualquer parte da infra.** Prefere SQS ao invés de RabbitMQ? Outro API Gateway? Outro IdP? Fique à vontade. O único requisito é que **`bun run docker:up` suba tudo**.
@@ -358,7 +359,7 @@ fullstack-challenge/
 cd services/games && bun test tests/unit
 cd services/wallets && bun test tests/unit
 cd services/games && bun test tests/e2e     # requer docker:up
-cd frontend && bun test
+cd frontend && bun run test
 ```
 
 ---

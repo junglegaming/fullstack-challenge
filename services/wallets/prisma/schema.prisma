@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id           String   @id @default(cuid())
+  playerId     String   @unique
+  balanceCents BigInt   @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions LedgerTransaction[]
+
+  @@index([playerId])
+  @@map("wallets")
+}
+
+model LedgerTransaction {
+  id                String                @id @default(cuid())
+  walletId          String
+  wallet            Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  idempotencyKey    String                @unique
+  type              LedgerTransactionType
+  amountCents       BigInt
+  balanceAfterCents BigInt
+  createdAt         DateTime              @default(now())
+
+  processedMessage ProcessedMessage?
+
+  @@index([walletId])
+  @@map("ledger_transactions")
+}
+
+model ProcessedMessage {
+  id                  String            @id @default(cuid())
+  idempotencyKey      String            @unique
+  messageType         String
+  ledgerTransactionId String            @unique
+  ledgerTransaction   LedgerTransaction @relation(fields: [ledgerTransactionId], references: [id], onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+
+  @@index([messageType])
+  @@map("processed_messages")
+}
+
+enum LedgerTransactionType {
+  CREDIT
+  DEBIT
+}

@@ -1,0 +1,14 @@
+export enum RoundStatus {
+  BETTING = "BETTING",
+  RUNNING = "RUNNING",
+  CRASHED = "CRASHED",
+  SETTLED = "SETTLED",
+}
+
+export enum BetStatus {
+  PENDING_DEBIT = "PENDING_DEBIT",
+  PLACED = "PLACED",
+  REJECTED = "REJECTED",
+  CASHED_OUT = "CASHED_OUT",
+  LOST = "LOST",
+}

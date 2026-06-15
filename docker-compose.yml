@@ -12,10 +12,10 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_EXTRA_DATABASES: games,wallets
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -54,7 +54,7 @@ services:
     volumes:
       - ./docker/keycloak:/opt/keycloak/data/import:ro
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200'"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200'"]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -99,12 +99,24 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4001:4001"
-    env_file:
-      - ./services/games/.env
+    environment:
+      PORT: "4001"
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/games
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/crash-game
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
+      GAME_BETTING_PHASE_MS: "10000"
+      GAME_SETTLEMENT_DELAY_MS: "3000"
+      GAME_ENGINE_TICK_MS: "250"
+      GAME_MULTIPLIER_GROWTH_BPS_PER_SECOND: "40"
+      GAME_MULTIPLIER_BOOST_AFTER_GAINED_BPS: "100"
+      GAME_MULTIPLIER_BOOST_GROWTH_BPS_PER_SECOND: "2000"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:4001/health || exit 1"]
@@ -122,12 +134,20 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4002:4002"
-    env_file:
-      - ./services/wallets/.env
+    environment:
+      PORT: "4002"
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/wallets
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/crash-game
+      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
+      WALLET_INITIAL_BALANCE_CENTS: "100000"
+      TEST_PLAYER_ID: "00000000-0000-4000-8000-000000000001"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:4002/health || exit 1"]
@@ -137,16 +157,29 @@ services:
       start_period: 15s
 
   # ---------------------------------------------------------------------------
-  # Frontend (placeholder — candidate implements)
+  # Frontend
   # ---------------------------------------------------------------------------
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - kong
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      kong:
+        condition: service_healthy
+      games:
+        condition: service_healthy
+      wallets:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
 volumes:
   postgres_data:
