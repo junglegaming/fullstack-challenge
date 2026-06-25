@@ -7,7 +7,18 @@ services:
       - name: games-routes
         paths:
           - /games
-        strip_path: true
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 120
+              policy: local
+              limit_by: ip
+              fault_tolerant: true
+      - name: games-ws-route
+        paths:
+          - /socket.io
+        strip_path: false
 
   - name: wallets-service
     url: http://wallets:4002
@@ -15,4 +26,11 @@ services:
       - name: wallets-routes
         paths:
           - /wallets
-        strip_path: true
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 120
+              policy: local
+              limit_by: ip
+              fault_tolerant: true

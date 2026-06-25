@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Games Tests
+        working-directory: services/games
+        run: bun test
+
+      - name: Wallets Tests
+        working-directory: services/wallets
+        run: bun test
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+        working-directory: frontend
+
+      - name: Typecheck
+        working-directory: frontend
+        run: bun run typecheck
+
+      - name: Frontend Tests
+        working-directory: frontend
+        run: bun test

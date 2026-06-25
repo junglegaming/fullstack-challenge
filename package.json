@@ -9,7 +9,10 @@
   "scripts": {
     "docker:up": "docker compose up",
     "docker:down": "docker compose down",
-    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f"
+    "docker:prune": "docker compose down -v --rmi all --remove-orphans && docker volume prune -f",
+    "test": "bun run test:games && bun run test:wallets && cd frontend && bun test",
+    "test:games": "cd services/games && bun test",
+    "test:wallets": "cd services/wallets && bun test"
   },
   "devDependencies": {
     "bun-types": "latest"
